@@ -11,6 +11,7 @@ services:
       - sl-proxy
     networks:
       - sl-net
+      - mediastack
 
   sl-proxy:
     build:
@@ -27,3 +28,5 @@ networks:
   sl-net:
     name: sl-net
     driver: bridge
+  mediastack:
+    external: true

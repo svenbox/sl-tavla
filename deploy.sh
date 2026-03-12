@@ -8,7 +8,7 @@ cd "$REPO_DIR"
 git pull
 
 echo "🔨 Bygger och startar om containers..."
-docker compose up -d --build
+docker compose build --no-cache && docker compose up -d
 
 echo "✅ Klart! Kör på http://localhost:8087"
 docker compose ps
