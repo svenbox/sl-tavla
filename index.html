@@ -4,7 +4,33 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Avgångstavla</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,700&display=swap" rel="stylesheet">
+<style>
+@font-face {
+  font-family:'SL Gothic Text 2', sans-serif;
+  src: url('https://afde-slweb-prod-axgjc2gedaepaveg.z01.azurefd.net/styleguide/8.3.0/staticcss/slgothictext2-regular.woff2') format('woff2');
+  font-weight: 400; font-style: normal;
+}
+@font-face {
+  font-family:'SL Gothic Text 2', sans-serif;
+  src: url('https://afde-slweb-prod-axgjc2gedaepaveg.z01.azurefd.net/styleguide/8.3.0/staticcss/slgothictext2-regularitalic.woff2') format('woff2');
+  font-weight: 400; font-style: italic;
+}
+@font-face {
+  font-family:'SL Gothic Text 2', sans-serif;
+  src: url('https://afde-slweb-prod-axgjc2gedaepaveg.z01.azurefd.net/styleguide/8.3.0/staticcss/slgothictext2-medium.woff2') format('woff2');
+  font-weight: 500; font-style: normal;
+}
+@font-face {
+  font-family:'SL Gothic Text 2', sans-serif;
+  src: url('https://afde-slweb-prod-axgjc2gedaepaveg.z01.azurefd.net/styleguide/8.3.0/staticcss/slgothictext2-mediumitalic.woff2') format('woff2');
+  font-weight: 500; font-style: italic;
+}
+@font-face {
+  font-family:'SL Gothic Text 2', sans-serif;
+  src: url('https://afde-slweb-prod-axgjc2gedaepaveg.z01.azurefd.net/styleguide/8.3.0/staticcss/slgothictext2-bold.woff2') format('woff2');
+  font-weight: 700; font-style: normal;
+}
+</style>
 <style>
 :root {
   --sl-blue:     #005b99;
@@ -24,7 +50,7 @@
   --panel-text:  #ffffff;
 }
 * { margin:0; padding:0; box-sizing:border-box; }
-body { font-family:'Inter',system-ui,sans-serif; background:var(--bg); color:var(--text); min-height:100vh; }
+body { font-family:'SL Gothic Text 2', system-ui, sans-serif; background:var(--bg); color:var(--text); min-height:100vh; }
 
 /* ── VIEWS ── */
 .view { display:none; }
@@ -57,7 +83,7 @@ body { font-family:'Inter',system-ui,sans-serif; background:var(--bg); color:var
   color: white;
   border-radius: 6px;
   padding: 6px 12px;
-  font-family: 'Inter',sans-serif;
+  font-family:'SL Gothic Text 2', sans-serif;
   font-size: 0.8rem;
   font-weight: 600;
   cursor: pointer;
@@ -74,10 +100,12 @@ body { font-family:'Inter',system-ui,sans-serif; background:var(--bg); color:var
   padding: 20px 16px 40px;
 }
 .boards-title {
-  font-size: 1.5rem;
-  font-weight: 900;
+  font-family:'SL Gothic Text 2', sans-serif;
+  font-size: 1.8rem;
+  font-weight: 700;
   margin-bottom: 6px;
-  letter-spacing: -0.02em;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
 }
 .boards-sub { font-size: 0.85rem; color: var(--text3); margin-bottom: 20px; }
 
@@ -90,46 +118,55 @@ body { font-family:'Inter',system-ui,sans-serif; background:var(--bg); color:var
 /* ── SL STOP SIGN CARD ── */
 .sign-card {
   background: white;
-  border-radius: 6px;
+  border-radius: 4px;
   overflow: hidden;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.12), 0 0 0 1px rgba(0,0,0,0.06);
+  box-shadow: 0 3px 12px rgba(0,0,0,0.18), inset 0 0 0 3px rgba(255,255,255,0.9);
+  border: 2px solid #bbb;
   cursor: pointer;
   transition: box-shadow 0.15s, transform 0.15s;
+  position: relative;
 }
-.sign-card:hover { box-shadow: 0 6px 20px rgba(0,0,0,0.16); transform: translateY(-2px); }
+.sign-card:hover { box-shadow: 0 8px 24px rgba(0,0,0,0.22); transform: translateY(-2px); }
 
 /* Top stripe – mimics real SL sign */
 .sign-stripe {
-  padding: 10px 14px 8px;
+  padding: 6px 10px 6px 8px;
   display: flex;
-  align-items: flex-start;
-  gap: 10px;
+  align-items: center;
+  gap: 8px;
+  border-bottom: 3px solid rgba(0,0,0,0.15);
 }
-.sign-stripe.blue  { background: var(--sl-blue); }
-.sign-stripe.red   { background: var(--sl-red); }
-.sign-stripe.green { background: var(--metro-green); }
+.sign-stripe.blue   { background: var(--sl-blue); }
+.sign-stripe.red    { background: var(--sl-red); }
+.sign-stripe.green  { background: var(--metro-green); }
+.sign-stripe.orange { background: var(--sl-orange); }
+.sign-stripe.dark   { background: #333; }
 
 .sign-mode-icon {
-  width: 28px; height: 28px;
+  width: 30px; height: 30px;
   background: white;
-  border-radius: 4px;
+  border-radius: 3px;
   display: flex; align-items: center; justify-content: center;
   font-size: 1rem;
   flex-shrink: 0;
-  margin-top: 1px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
 }
 .sign-stop-name {
   color: white;
-  font-size: 1.05rem;
-  font-weight: 800;
-  line-height: 1.2;
-  letter-spacing: -0.01em;
+  font-family:'SL Gothic Text 2', sans-serif;
+  font-size: 1.25rem;
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: 0.01em;
+  text-transform: uppercase;
 }
 .sign-board-name {
-  color: rgba(255,255,255,0.8);
-  font-size: 0.72rem;
-  font-weight: 500;
-  margin-top: 2px;
+  color: rgba(255,255,255,0.85);
+  font-family:'SL Gothic Text 2', sans-serif;
+  font-size: 0.75rem;
+  font-weight: 400;
+  margin-top: 1px;
+  letter-spacing: 0.02em;
 }
 
 /* Lines list in card body */
@@ -161,25 +198,31 @@ body { font-family:'Inter',system-ui,sans-serif; background:var(--bg); color:var
 }
 .mini-dest { color: var(--text2); font-size: 0.78rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-/* Small display panel – like the digital board on the pole */
+/* Small display panel – real digital display look */
 .sign-panel {
-  background: var(--panel-bg);
-  padding: 8px 12px;
+  background: #111;
+  padding: 6px 10px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 8px;
+  border-top: 2px solid #000;
+  border-bottom: 1px solid #333;
 }
 .panel-next {
-  color: var(--panel-text);
-  font-size: 0.72rem;
+  color: #ccc;
+  font-family:'SL Gothic Text 2', sans-serif;
+  font-size: 0.75rem;
   font-weight: 400;
-  opacity: 0.7;
+  letter-spacing: 0.03em;
+  opacity: 0.8;
 }
 .panel-time {
   color: white;
-  font-size: 0.85rem;
+  font-family:'SL Gothic Text 2', sans-serif;
+  font-size: 1rem;
   font-weight: 700;
+  letter-spacing: 0.04em;
 }
 .sign-card-footer {
   padding: 6px 14px;
@@ -191,7 +234,7 @@ body { font-family:'Inter',system-ui,sans-serif; background:var(--bg); color:var
 .card-delete {
   background: none; border: none; cursor: pointer;
   color: var(--text3); font-size: 0.72rem; padding: 2px 6px;
-  border-radius: 4px; font-family: 'Inter', sans-serif;
+  border-radius: 4px; font-family:'SL Gothic Text 2', sans-serif;
   transition: all 0.12s;
 }
 .card-delete:hover { color: var(--sl-red); background: #ffeaea; }
@@ -234,26 +277,31 @@ body { font-family:'Inter',system-ui,sans-serif; background:var(--bg); color:var
 .big-sign.green { background: var(--metro-green); }
 
 .big-sign-icon {
-  width: 44px; height: 44px;
+  width: 46px; height: 46px;
   background: white;
-  border-radius: 6px;
+  border-radius: 4px;
   display: flex; align-items: center; justify-content: center;
-  font-size: 1.6rem;
+  font-size: 1.7rem;
   flex-shrink: 0;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
 }
 .big-sign-info { flex: 1; }
 .big-sign-stop {
   color: white;
-  font-size: 1.6rem;
-  font-weight: 900;
-  letter-spacing: -0.02em;
-  line-height: 1.1;
+  font-family:'SL Gothic Text 2', sans-serif;
+  font-size: 2rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  line-height: 1.05;
+  text-transform: uppercase;
 }
 .big-sign-board {
-  color: rgba(255,255,255,0.8);
-  font-size: 0.8rem;
-  font-weight: 500;
-  margin-top: 3px;
+  color: rgba(255,255,255,0.85);
+  font-family:'SL Gothic Text 2', sans-serif;
+  font-size: 0.9rem;
+  font-weight: 400;
+  letter-spacing: 0.04em;
+  margin-top: 2px;
 }
 .big-sign-right {
   display: flex;
@@ -263,9 +311,10 @@ body { font-family:'Inter',system-ui,sans-serif; background:var(--bg); color:var
 }
 .big-clock {
   color: white;
-  font-size: 1.4rem;
-  font-weight: 800;
-  letter-spacing: 0.02em;
+  font-family:'SL Gothic Text 2', sans-serif;
+  font-size: 1.6rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
 }
 .back-btn {
   color: rgba(255,255,255,0.85);
@@ -276,7 +325,7 @@ body { font-family:'Inter',system-ui,sans-serif; background:var(--bg); color:var
   font-size: 0.75rem;
   font-weight: 600;
   cursor: pointer;
-  font-family: 'Inter',sans-serif;
+  font-family:'SL Gothic Text 2', sans-serif;
   transition: background 0.15s;
 }
 .back-btn:hover { background: rgba(255,255,255,0.25); }
@@ -316,7 +365,7 @@ body { font-family:'Inter',system-ui,sans-serif; background:var(--bg); color:var
   text-decoration: underline;
   text-underline-offset: 2px;
   background: none; border: none;
-  font-family: 'Inter',sans-serif;
+  font-family:'SL Gothic Text 2', sans-serif;
   white-space: nowrap;
 }
 
@@ -334,7 +383,7 @@ body { font-family:'Inter',system-ui,sans-serif; background:var(--bg); color:var
 .refresh-link {
   background: none; border: none; cursor: pointer;
   color: var(--sl-blue); font-size: 0.78rem; font-weight: 600;
-  font-family: 'Inter',sans-serif;
+  font-family:'SL Gothic Text 2', sans-serif;
   display: flex; align-items: center; gap: 4px;
   text-decoration: underline; text-underline-offset: 2px;
 }
@@ -374,24 +423,28 @@ body { font-family:'Inter',system-ui,sans-serif; background:var(--bg); color:var
 
 .dep-badge {
   border-radius: 4px;
-  padding: 3px 9px;
-  font-size: 0.85rem;
+  padding: 3px 10px;
+  font-family:'SL Gothic Text 2', sans-serif;
+  font-size: 1rem;
   font-weight: 700;
   color: white;
   flex-shrink: 0;
-  min-width: 36px;
+  min-width: 38px;
   text-align: center;
+  letter-spacing: 0.02em;
 }
 .dep-dest {
   flex: 1;
+  font-family:'SL Gothic Text 2', sans-serif;
   font-size: 1rem;
-  font-weight: 700;
+  font-weight: 600;
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  letter-spacing: 0.01em;
 }
 .dep-dest.canceled { color: var(--sl-red); text-decoration: line-through; }
 .dep-platform { font-size: 0.75rem; color: var(--text3); flex-shrink: 0; }
 .dep-time-col { text-align: right; flex-shrink: 0; min-width: 72px; }
-.dep-time-big { font-size: 1.1rem; font-weight: 800; color: var(--text); }
+.dep-time-big { font-family:'SL Gothic Text 2', sans-serif; font-size: 1.2rem; font-weight: 700; color: var(--text); letter-spacing: 0.02em; }
 .dep-time-big.now { color: var(--metro-green); }
 .dep-time-big.soon { color: var(--sl-red); }
 .dep-delay-note { font-size: 0.65rem; color: var(--sl-red); font-weight: 500; margin-top: 1px; }
@@ -420,7 +473,7 @@ body { font-family:'Inter',system-ui,sans-serif; background:var(--bg); color:var
   border: 2px solid var(--border);
   border-radius: 8px;
   padding: 11px 14px;
-  font-family: 'Inter',sans-serif;
+  font-family:'SL Gothic Text 2', sans-serif;
   font-size: 0.95rem;
   color: var(--text);
   outline: none;
@@ -505,7 +558,7 @@ body { font-family:'Inter',system-ui,sans-serif; background:var(--bg); color:var
   background: var(--sl-blue); color: white;
   border: none; border-radius: 8px;
   padding: 13px 24px;
-  font-family: 'Inter',sans-serif;
+  font-family:'SL Gothic Text 2', sans-serif;
   font-size: 0.95rem; font-weight: 700;
   cursor: pointer; width: 100%;
   transition: background 0.15s;
@@ -515,7 +568,7 @@ body { font-family:'Inter',system-ui,sans-serif; background:var(--bg); color:var
   background: white; color: var(--text);
   border: 2px solid var(--border); border-radius: 8px;
   padding: 11px 24px;
-  font-family: 'Inter',sans-serif;
+  font-family:'SL Gothic Text 2', sans-serif;
   font-size: 0.95rem; font-weight: 600;
   cursor: pointer; width: 100%;
   transition: all 0.15s;
@@ -546,11 +599,11 @@ body { font-family:'Inter',system-ui,sans-serif; background:var(--bg); color:var
 .key-row { display: flex; gap: 8px; }
 .key-input {
   flex: 1; border: 1px solid #aac4dc; border-radius: 6px;
-  padding: 8px 10px; font-family: 'Inter',sans-serif; font-size: 0.82rem;
+  padding: 8px 10px; font-family:'SL Gothic Text 2', sans-serif; font-size: 0.82rem;
   outline: none; background: white;
 }
 .key-input:focus { border-color: var(--sl-blue); }
-.btn-save { padding: 8px 16px; background: var(--sl-blue); color: white; border: none; border-radius: 6px; font-family: 'Inter',sans-serif; font-size: 0.82rem; font-weight: 600; cursor: pointer; }
+.btn-save { padding: 8px 16px; background: var(--sl-blue); color: white; border: none; border-radius: 6px; font-family:'SL Gothic Text 2', sans-serif; font-size: 0.82rem; font-weight: 600; cursor: pointer; }
 
 /* Debug */
 .debug-wrap { margin: 16px; border: 1px solid var(--border); border-radius: 6px; overflow: hidden; }
