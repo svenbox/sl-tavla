@@ -478,11 +478,12 @@ body {
 }
 .dep-dest.canceled { color: var(--sl-red); text-decoration: line-through; }
 .dep-platform { font-size: 0.75rem; color: var(--text3); flex-shrink: 0; }
-.dep-time-col { text-align: right; flex-shrink: 0; min-width: 72px; }
-.dep-time-big { font-family:'SL Gothic Text 2', sans-serif; font-size: 1.2rem; font-weight: 700; color: var(--text); letter-spacing: 0.02em; }
+.dep-time-col { text-align: right; flex-shrink: 0; min-width: 90px; display: flex; flex-direction: column; align-items: flex-end; justify-content: center; gap: 1px; }
+.dep-time-big { font-family:'SL Gothic Text 2', sans-serif; font-size: 1.2rem; font-weight: 700; color: var(--text); letter-spacing: 0.02em; line-height: 1.2; }
 .dep-time-big.now { color: var(--metro-green); }
 .dep-time-big.soon { color: var(--sl-red); }
-.dep-delay-note { font-size: 0.65rem; color: var(--sl-red); font-weight: 500; margin-top: 1px; }
+.dep-clock { font-family:'SL Gothic Text 2', sans-serif; font-size: 0.72rem; font-weight: 400; color: var(--text3); letter-spacing: 0.03em; }
+.dep-delay-note { font-size: 0.65rem; color: var(--sl-red); font-weight: 500; }
 
 /* ── CREATE VIEW ── */
 .create-container {
@@ -1086,15 +1087,18 @@ function updateDetailToggleBtn() {
 
 // ═══════════════════════════════════════════
 // RENDER DEPARTURES
+// SL tunnelbana: blå=10/11, röd=13/14, grön=17/18/19
+const METRO_LINE_COLOR = {
+  10:'#0062a3', 11:'#0062a3',   // Blå linjen
+  13:'#d4171e', 14:'#d4171e',   // Röda linjen
+  17:'#1d7a3a', 18:'#1d7a3a', 19:'#1d7a3a',  // Gröna linjen
+};
 function lineColor(line, mode) {
   if (mode==='METRO'||mode==='SUBWAY') {
-    const n=parseInt(line);
-    if(n>=10&&n<=11) return '#1d7a3a';
-    if(n>=13&&n<=14) return '#d4171e';
-    if(n>=17&&n<=19) return '#005b99';
-    return '#1d7a3a';
+    const n = parseInt(line);
+    return METRO_LINE_COLOR[n] || '#1d7a3a';
   }
-  if(mode==='BUS')   return '#005b99';
+  if(mode==='BUS')   return '#0062a3';
   if(mode==='TRAM')  return '#c0392b';
   if(mode==='TRAIN') return '#6b2fa0';
   if(mode==='FERRY') return '#0077b6';
@@ -1125,21 +1129,23 @@ function renderDetailDeps() {
     const delayMin= (rt&&sch) ? Math.round((rt-sch)/60000) : 0;
     const delayed = delayMin > 1;
 
-    let timeHtml, timeClass = '';
+    // Minuter kvar
+    let minHtml, clockHtml = '', timeClass = '';
     if (d.canceled) {
-      timeHtml = `<span style="color:var(--sl-red);font-size:0.82rem;font-weight:700">Inställd</span>`;
+      minHtml   = `<span style="color:var(--sl-red);font-size:0.78rem;font-weight:700">Inställd</span>`;
+      clockHtml = '';
     } else if (diffMin===null) {
-      timeHtml = `<span class="dep-time-big">–</span>`;
+      minHtml   = `<span class="dep-time-big">–</span>`;
     } else if (diffMin <= 0) {
-      timeHtml = `<span class="dep-time-big now">Nu</span>`;
-    } else if (diffMin > 60) {
-      timeHtml = `<span class="dep-time-big">${t.toTimeString().slice(0,5)}</span>`;
+      minHtml   = `<span class="dep-time-big now">Nu</span>`;
+      clockHtml = t ? `<span class="dep-clock">${t.toTimeString().slice(0,5)}</span>` : '';
     } else {
       timeClass = diffMin <= 2 ? 'soon' : '';
-      timeHtml = `<span class="dep-time-big ${timeClass}">${diffMin} min</span>`;
+      minHtml   = `<span class="dep-time-big ${timeClass}">${diffMin} min</span>`;
+      clockHtml = t ? `<span class="dep-clock">${t.toTimeString().slice(0,5)}</span>` : '';
     }
     if (delayed && !d.canceled) {
-      timeHtml += `<div class="dep-delay-note">+${delayMin} min</div>`;
+      minHtml += `<div class="dep-delay-note">+${delayMin} min</div>`;
     }
 
     return `<div class="dep-row" style="animation-delay:${i*18}ms">
@@ -1147,7 +1153,10 @@ function renderDetailDeps() {
       <div class="dep-badge" style="background:${lineColor(d.line,d.mode)}">${d.line}</div>
       <div class="dep-dest${d.canceled?' canceled':''}">${d.dest}</div>
       ${d.platform?`<div class="dep-platform">Läge ${d.platform}</div>`:''}
-      <div class="dep-time-col">${timeHtml}</div>
+      <div class="dep-time-col">
+        ${minHtml}
+        ${clockHtml}
+      </div>
     </div>`;
   }).join('');
 }
