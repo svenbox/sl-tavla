@@ -121,31 +121,41 @@
         });
     }
 
-    async function loadBoardData(id, idx) {
-        const url = `https://transport.integration.sl.se/v1/sites/${id}/departures?limit=15`;
-        try {
-            const res = await fetch(P + encodeURIComponent(url));
-            const data = await res.json();
-            const div = document.getElementById(`deps-${idx}`);
-            
-            if(!data.departures || data.departures.length === 0) {
-                div.innerHTML = '<p style="padding:15px; color:#666;">Inga avgångar.</p>';
-                return;
-            }
+async function loadBoardData(id, idx) {
+    // Vi hämtar 50 avgångar för att vara helt säkra på att nå förbi färjorna
+    const url = `https://transport.integration.sl.se/v1/sites/${id}/departures?limit=50`;
+    try {
+        const res = await fetch(P + encodeURIComponent(url));
+        const data = await res.json();
+        const div = document.getElementById(`deps-${idx}`);
+        
+        if(!data.departures || data.departures.length === 0) {
+            div.innerHTML = '<p style="padding:15px; color:#666;">Inga avgångar.</p>';
+            return;
+        }
 
-            div.innerHTML = data.departures.map(d => {
-                const color = getLineColor(d.line.designation, d.line.transport_mode);
-                const isCanceled = d.state === 'CANCELLED';
-                return `
-                    <div class="dep-row">
-                        <div class="dep-line" style="background:${color}">${d.line.designation}</div>
-                        <div class="dep-dest ${isCanceled ? 'canceled' : ''}">${d.destination} ${d.deviations?.length ? '⚠️' : ''}</div>
-                        <div class="dep-time">${isCanceled ? 'Inställd' : formatTime(d.expected || d.scheduled)}</div>
-                    </div>
-                `;
-            }).join('');
-        } catch(e) { console.error(e); }
-    }
+        // --- FILTRERING OCH SORTERING ---
+        // Här sorterar vi så att SHIP (färjor) hamnar sist, och T-bana/Buss hamnar först
+        const sortedDeps = data.departures.sort((a, b) => {
+            if (a.line.transport_mode === 'SHIP' && b.line.transport_mode !== 'SHIP') return 1;
+            if (a.line.transport_mode !== 'SHIP' && b.line.transport_mode === 'SHIP') return -1;
+            return 0; // Annars behåll tidsordning
+        });
+
+        // Vi visar de 12 första efter sorteringen
+        div.innerHTML = sortedDeps.slice(0, 12).map(d => {
+            const color = getLineColor(d.line.designation, d.line.transport_mode);
+            const isCanceled = d.state === 'CANCELLED';
+            return `
+                <div class="dep-row">
+                    <div class="dep-line" style="background:${color}">${d.line.designation}</div>
+                    <div class="dep-dest ${isCanceled ? 'canceled' : ''}">${d.destination} ${d.deviations?.length ? '⚠️' : ''}</div>
+                    <div class="dep-time">${isCanceled ? 'Inställd' : formatTime(d.expected || d.scheduled)}</div>
+                </div>
+            `;
+        }).join('');
+    } catch(e) { console.error(e); }
+}
 
     function getLineColor(line, mode) {
         if (mode === 'METRO') {
