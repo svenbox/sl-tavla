@@ -1,130 +1,131 @@
 <!DOCTYPE html>
 <html lang="sv">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>SL Avgångstavla</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
-<style>
-:root {
-  --sl-blue: #005b99; --sl-red: #d4171e; --sl-green: #1d7a3a; --sl-orange: #e8830a; --bg: #121212; --card-bg: #1e1e1e; --text: #eee;
-}
-body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); margin:0; padding:0; }
-.top-bar { background: #000; padding: 15px; display: flex; justify-content: space-between; align-items: center; position: sticky; top:0; z-index:100; border-bottom: 1px solid #333; }
-.view { display: none; padding: 15px; max-width: 800px; margin: 0 auto; }
-.view.active { display: block; }
-.board-card { background: var(--card-bg); border-radius: 12px; margin-bottom: 20px; overflow: hidden; border: 1px solid #333; }
-.board-header { padding: 15px; display: flex; justify-content: space-between; background: rgba(255,255,255,0.05); }
-.dep-row { display: flex; align-items: center; padding: 12px 15px; border-bottom: 1px solid #2a2a2a; }
-.dep-line { width: 42px; height: 26px; color: white; display: flex; align-items: center; justify-content: center; border-radius: 4px; font-weight: 900; font-size: 0.85rem; }
-.dep-dest { flex: 1; margin: 0 12px; font-weight: 600; font-size: 1rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.dep-time { font-weight: 900; color: var(--sl-orange); min-width: 65px; text-align: right; }
-.canceled { text-decoration: line-through; opacity: 0.4; }
-.btn-primary { background: var(--sl-blue); color: white; border: none; padding: 15px; width: 100%; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 1rem; }
-input { width: 100%; padding: 15px; margin: 10px 0; border: 1px solid #444; background: #222; color: white; border-radius: 8px; font-size: 1rem; }
-.search-item { padding: 15px; border-bottom: 1px solid #333; cursor: pointer; background: #252525; margin-bottom: 5px; border-radius: 4px; }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>SL Avgångstavla</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --sl-blue: #005b99; --sl-red: #d4171e; --sl-green: #1d7a3a; --sl-orange: #e8830a; --bg: #121212; --text: #eee;
+        }
+        body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 0; }
+        .top-bar { background: #000; padding: 15px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #333; }
+        #board-container { padding: 15px; max-width: 800px; margin: 0 auto; }
+        .dep-row { display: flex; align-items: center; padding: 12px; border-bottom: 1px solid #2a2a2a; background: #1e1e1e; margin-bottom: 2px; border-radius: 4px; }
+        .dep-line { width: 45px; height: 28px; color: white; display: flex; align-items: center; justify-content: center; border-radius: 4px; font-weight: 900; font-size: 0.9rem; flex-shrink: 0; }
+        .dep-dest { flex: 1; margin: 0 15px; font-weight: 600; font-size: 1.1rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .dep-time { font-weight: 900; color: var(--sl-orange); min-width: 70px; text-align: right; }
+        .canceled { text-decoration: line-through; opacity: 0.4; }
+    </style>
 </head>
 <body>
 
 <div class="top-bar">
-  <h1 onclick="showView('boards')" style="cursor:pointer; font-size:1.2rem; margin:0;">SL LIVE</h1>
-  <button onclick="showView('create')" style="background:var(--sl-blue); border:none; color:white; width:35px; height:35px; border-radius:50%; font-size:1.2rem; cursor:pointer; font-weight:bold;">＋</button>
+    <h1 style="font-size: 1.2rem; margin: 0;">SL LIVE</h1>
+    <div id="status-dot" style="width: 10px; height: 10px; background: #1d7a3a; border-radius: 50%;"></div>
 </div>
 
-<div id="view-boards" class="view active">
-  <div id="boards-list"></div>
-  <div id="empty-msg" style="text-align:center; padding:60px; color:#666;">
-    <p>Inga tavlor sparade.</p>
-    <button class="btn-primary" onclick="showView('create')" style="margin-top:20px; width:auto;">Lägg till hållplats</button>
-  </div>
-</div>
-
-<div id="view-create" class="view">
-  <div class="board-card" style="padding:20px;">
-    <h2 style="margin-top:0;">Sök hållplats</h2>
-    <input type="text" id="stop-search" placeholder="Sök station eller hållplats..." oninput="searchStop(this.value)">
-    <div id="search-results"></div>
-    <button class="btn-primary" onclick="showView('boards')" style="background:#444; margin-top:15px;">Avbryt</button>
-  </div>
+<div id="board-container">
+    <p style="text-align:center; padding:20px; color:#666;">Hämtar avgångar...</p>
 </div>
 
 <script>
-    // 1. Konfiguration - Se till att P används överallt
+    // 1. Konfiguration
     const P = "/proxy?url=";
+    const DEFAULT_SITE_ID = '9192'; // Ändra till ditt föredragna SiteID (t.ex. 9192 för Slussen)
 
     // 2. Funktion för att hämta data
     async function fetchSLDeps(siteId) {
-        // Vi lägger till ?limit=20 för att vara säkra på att få mer än bara färjor
-        const targetUrl = `https://transport.integration.sl.se/v1/sites/${siteId}/departures?limit=20`;
+        // Vi hämtar 30 st för att vara säkra på att få med allt (Buss, Tåg, T-bana)
+        const targetUrl = `https://transport.integration.sl.se/v1/sites/${siteId}/departures?limit=30`;
         try {
             const r = await fetch(P + encodeURIComponent(targetUrl));
+            if (!r.ok) throw new Error("Proxy error");
             const d = await r.json();
             
-            // Vi mappar datat och ser till att vi har transport_mode för färgkodning
             return (d.departures || []).map(x => ({
                 line: x.line?.designation || '?',
-                mode: x.line?.transport_mode, // Sparar om det är BUS, METRO, TRAIN etc.
+                mode: x.line?.transport_mode,
                 dest: x.destination || '–',
                 time: x.expected || x.scheduled,
-                canceled: x.state === 'CANCELLED',
+                state: x.state,
                 deviations: x.deviations || []
             }));
         } catch (e) {
-            console.error("Fel vid hämtning:", e);
-            return [];
+            console.error("Hämtningsfel:", e);
+            return null;
         }
     }
 
-    // 3. Funktion för att rita ut raderna med rätt färger
-    function renderRow(d) {
-        const hasDev = d.deviations && d.deviations.length > 0;
-        const devText = hasDev ? d.deviations.map(dv => dv.consequence).join('. ') : '';
-        
-        // Bestäm färg baserat på transportslag
-        let lineColor = "#005b99"; // Standard blå
-        if (d.mode === 'BUS') lineColor = "#d4171e"; // Bussar är röda
-        if (d.mode === 'TRAIN') lineColor = "#e8830a"; // Pendeltåg orange
-        if (d.mode === 'METRO') {
-            if (['17','18','19'].includes(d.line)) lineColor = "#1d7a3a"; // Grön linje
-            if (['13','14'].includes(d.line)) lineColor = "#d4171e"; // Röd linje
+    // 3. Hjälpfunktion för färger
+    function getLineColor(line, mode) {
+        if (mode === 'METRO') {
+            if (['10','11'].includes(line)) return '#005b99';
+            if (['13','14'].includes(line)) return '#d4171e';
+            if (['17','18','19'].includes(line)) return '#1d7a3a';
         }
-
-        return `
-            <div class="dep-row">
-                <div class="dep-line" style="background-color: ${lineColor}">${d.line}</div>
-                <div class="dep-dest ${d.canceled ? 'canceled' : ''}">
-                    ${d.dest} ${hasDev ? `<span class="dev-icon" title="${devText}">⚠️</span>` : ''}
-                </div>
-                <div class="dep-time">${d.canceled ? 'Inställd' : formatTime(d.time)}</div>
-            </div>
-        `;
+        if (mode === 'BUS') return '#d4171e';
+        if (mode === 'TRAIN') return '#e8830a';
+        if (mode === 'SHIP') return '#00b4e5';
+        return '#444';
     }
 
+    // 4. Formatera tid
     function formatTime(iso) {
         const diff = Math.round((new Date(iso) - new Date()) / 60000);
         if (diff <= 0) return 'Nu';
-        if (diff > 30) return new Date(iso).toLocaleTimeString('sv-SE', {hour: '2-digit', minute:'2-digit'});
+        if (diff > 25) {
+            const d = new Date(iso);
+            return d.getHours().toString().padStart(2,'0') + ':' + d.getMinutes().toString().padStart(2,'0');
+        }
         return diff + ' min';
     }
 
-    // 4. Starta appen och ladda en hållplats (t.ex. Slussen = 9192 eller Tekniska = 9204)
-    async function init() {
+    // 5. Huvudfunktion för att rita tavlan
+    async function updateBoard() {
         const container = document.getElementById('board-container');
-        // Ändra '9192' till det SiteID du vill visa som standard
-        const deps = await fetchSLDeps('9192'); 
-        
-        if (deps.length === 0) {
-            container.innerHTML = "<p>Inga avgångar hittades.</p>";
+        const data = await fetchSLDeps(DEFAULT_SITE_ID);
+
+        if (!data) {
+            // Visa felmeddelande om vi inte får kontakt med proxyn
+            document.getElementById('status-dot').style.background = 'red';
             return;
         }
 
-        container.innerHTML = deps.map(d => renderRow(d)).join('');
+        document.getElementById('status-dot').style.background = '#1d7a3a';
+
+        // Filtrera bort färjor om du vill (valfritt, kommentera bort nästa rad för att se ALLT)
+        // const filtered = data.filter(d => d.mode !== 'SHIP'); 
+        const filtered = data; 
+
+        if (filtered.length === 0) {
+            container.innerHTML = "<p style='text-align:center;'>Inga avgångar hittades.</p>";
+            return;
+        }
+
+        container.innerHTML = filtered.slice(0, 12).map(d => {
+            const color = getLineColor(d.line, d.mode);
+            const isCanceled = d.state === 'CANCELLED';
+            return `
+                <div class="dep-row">
+                    <div class="dep-line" style="background:${color}">${d.line}</div>
+                    <div class="dep-dest ${isCanceled ? 'canceled' : ''}">
+                        ${d.dest} ${d.deviations.length > 0 ? '⚠️' : ''}
+                    </div>
+                    <div class="dep-time">${isCanceled ? 'Inställd' : formatTime(d.time)}</div>
+                </div>
+            `;
+        }).join('');
     }
 
-    // Kör direkt och sedan var 30:e sekund
-    init();
-    setInterval(init, 30000);
+    // 6. Starta och sätt interval
+    updateBoard();
+    setInterval(updateBoard, 30000);
+
+    // En tom showView för att undvika felmeddelanden om knappar finns kvar i HTML
+    function showView(view) { console.log("Byter vy till:", view); }
 </script>
+
 </body>
 </html>
