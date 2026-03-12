@@ -122,28 +122,29 @@
     }
 
 async function loadBoardData(id, idx) {
-    // Vi hämtar 50 avgångar för att vara helt säkra på att nå förbi färjorna
-    const url = `https://transport.integration.sl.se/v1/sites/${id}/departures?limit=50`;
+    // Vi hämtar 100 avgångar för att garanterat hitta bussar/tåg bakom alla färjor
+    const url = `https://transport.integration.sl.se/v1/sites/${id}/departures?limit=100`;
     try {
         const res = await fetch(P + encodeURIComponent(url));
         const data = await res.json();
         const div = document.getElementById(`deps-${idx}`);
         
         if(!data.departures || data.departures.length === 0) {
-            div.innerHTML = '<p style="padding:15px; color:#666;">Inga avgångar.</p>';
+            div.innerHTML = '<p style="padding:15px; color:#666;">Inga avgångar hittades.</p>';
             return;
         }
 
-        // --- FILTRERING OCH SORTERING ---
-        // Här sorterar vi så att SHIP (färjor) hamnar sist, och T-bana/Buss hamnar först
-        const sortedDeps = data.departures.sort((a, b) => {
-            if (a.line.transport_mode === 'SHIP' && b.line.transport_mode !== 'SHIP') return 1;
-            if (a.line.transport_mode !== 'SHIP' && b.line.transport_mode === 'SHIP') return -1;
-            return 0; // Annars behåll tidsordning
-        });
+        // --- HÅRD FILTRERING ---
+        // Vi tar BORT allt som är färja (SHIP)
+        const onlyLandTransport = data.departures.filter(d => d.line.transport_mode !== 'SHIP');
 
-        // Vi visar de 12 första efter sorteringen
-        div.innerHTML = sortedDeps.slice(0, 12).map(d => {
+        if (onlyLandTransport.length === 0) {
+            div.innerHTML = '<p style="padding:15px; color:#888;">Hittade bara färjor på denna plats. Prova att söka en annan hållplatsdel.</p>';
+            return;
+        }
+
+        // Rendera de 12 första (som nu garanterat inte är färjor)
+        div.innerHTML = onlyLandTransport.slice(0, 12).map(d => {
             const color = getLineColor(d.line.designation, d.line.transport_mode);
             const isCanceled = d.state === 'CANCELLED';
             return `
@@ -154,7 +155,10 @@ async function loadBoardData(id, idx) {
                 </div>
             `;
         }).join('');
-    } catch(e) { console.error(e); }
+    } catch(e) { 
+        console.error(e);
+        document.getElementById(`deps-${idx}`).innerHTML = '<p style="padding:15px; color:red;">Kunde inte ladda data.</p>';
+    }
 }
 
     function getLineColor(line, mode) {
