@@ -64,7 +64,6 @@ body { font-family:'SL Gothic Text 2', system-ui, sans-serif; background:var(--b
   width: 28px; height: 28px;
   border-radius: 3px;
   flex-shrink: 0;
-  overflow: hidden;
   display: flex; align-items: center; justify-content: center;
 }
 .mode-icon-wrap svg { width: 28px; height: 28px; }
@@ -967,10 +966,6 @@ function openBoard(i) {
   const sign  = document.getElementById('detail-sign');
   sign.style.background = color;
 
-  const modes = currentBoard.defaultModes || [];
-  const primaryMode = [...new Set(modes)][0] || 'BUS';
-  document.getElementById('detail-icon').innerHTML = modeIconSVG(primaryMode, 'lg');
-
   document.getElementById('detail-stop').textContent  = currentBoard.stopName;
   document.getElementById('detail-board').textContent = currentBoard.name;
   document.getElementById('detail-filter-bar').style.display = 'none';
@@ -1003,6 +998,12 @@ async function loadDetailDepartures() {
     // Keep only modes that exist in data
     activeModes = new Set([...activeModes].filter(m => detailModes.has(m)));
     if (!activeModes.size) activeModes = new Set(detailModes);
+
+    // Update header icon based on dominant mode in data
+    const modeCount = {};
+    raw.forEach(d => { modeCount[d.mode] = (modeCount[d.mode]||0) + 1; });
+    const dominantMode = Object.keys(modeCount).sort((a,b) => modeCount[b]-modeCount[a])[0];
+    if (dominantMode) document.getElementById('detail-icon').innerHTML = modeIconSVG(dominantMode, 'lg');
 
     buildDetailModeFilter();
     renderDetailDeps();
