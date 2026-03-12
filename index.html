@@ -9,7 +9,7 @@
 <meta name="theme-color" content="#005b99">
 <link rel="apple-touch-icon" href="/icon.png">
 <link rel="manifest" href="/manifest.json">
-<title>Avgångstavla</title>
+<title>Avgångstavla v2</title>
 <style>
 @font-face {
   font-family:'SL Gothic Text 2';
@@ -106,17 +106,23 @@ body { font-family:'SL Gothic Text 2', system-ui, sans-serif; background:var(--b
   top: 0;
   z-index: 50;
 }
-/* Status bar area for PWA fullscreen on iPhone */
-.top-nav-spacer {
-  background: var(--sl-blue);
-  height: env(safe-area-inset-top);
-  position: fixed;
-  top: 0; left: 0; right: 0;
-  z-index: 51;
+/* Status bar area – BARA i PWA standalone-läge, ej i browser */
+.top-nav-spacer { display: none; height: 0; }
+@media all and (display-mode: standalone) {
+  .top-nav-spacer {
+    display: block;
+    background: var(--sl-blue);
+    height: env(safe-area-inset-top, 0px);
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 51;
+  }
+  body {
+    padding-top: env(safe-area-inset-top, 0px);
+  }
 }
 body {
-  padding-top: env(safe-area-inset-top);
-  padding-bottom: env(safe-area-inset-bottom);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
 }
 .sl-circle {
   width: 34px; height: 34px;
@@ -404,8 +410,6 @@ body {
   color: var(--text2);
   user-select: none;
 }
-.mode-pill:hover:not(.on) { border-color: #aac4dc; }
-.mode-pill.on { background: var(--sl-blue); border-color: var(--sl-blue); color: white; }
 .toggle-all-link {
   margin-left: auto;
   font-size: 0.75rem;
@@ -891,11 +895,12 @@ const MODE_ICON_EMOJI = { BUS:'🚌', METRO:'🚇', SUBWAY:'🚇', TRAM:'🚋', 
 function modeIconSVG(m, size) {
   const cls = size === 'lg' ? 'lg' : size === 'sm' ? 'sm' : '';
   const icons = {
-    BUS: `<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><rect width="24" height="24" rx="3" fill="#005b99"/><rect x="5" y="7" width="14" height="9" rx="1.5" fill="white"/><rect x="7" y="9" width="4" height="3" rx="0.5" fill="#005b99"/><rect x="13" y="9" width="4" height="3" rx="0.5" fill="#005b99"/><circle cx="8" cy="18" r="1.8" fill="white"/><circle cx="16" cy="18" r="1.8" fill="white"/><rect x="5" y="14" width="14" height="1.5" fill="#005b99"/></svg>`,
-    METRO: `<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><rect width="24" height="24" rx="3" fill="#111"/><circle cx="12" cy="12" r="7" stroke="white" stroke-width="2.5" fill="none"/><text x="12" y="16.5" text-anchor="middle" font-family="Arial,sans-serif" font-size="10" font-weight="900" fill="white">T</text></svg>`,
-    TRAM: `<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><rect width="24" height="24" rx="3" fill="#c0392b"/><rect x="7" y="7" width="10" height="9" rx="1.5" stroke="white" stroke-width="2" fill="none"/><rect x="9" y="9" width="6" height="2.5" rx="0.5" fill="white"/><line x1="7" y1="14" x2="17" y2="14" stroke="white" stroke-width="1.5"/><circle cx="9.5" cy="18.5" r="1.5" fill="white"/><circle cx="14.5" cy="18.5" r="1.5" fill="white"/><line x1="9" y1="7" x2="9" y2="5" stroke="white" stroke-width="1.5"/><line x1="15" y1="7" x2="15" y2="5" stroke="white" stroke-width="1.5"/></svg>`,
-    TRAIN: `<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><rect width="24" height="24" rx="3" fill="#6b2fa0"/><rect x="7" y="4" width="10" height="13" rx="2" stroke="white" stroke-width="2" fill="none"/><line x1="7" y1="10" x2="17" y2="10" stroke="white" stroke-width="1.5"/><circle cx="9.5" cy="7" r="1" fill="white"/><circle cx="14.5" cy="7" r="1" fill="white"/><circle cx="9.5" cy="19.5" r="1.8" fill="white"/><circle cx="14.5" cy="19.5" r="1.8" fill="white"/></svg>`,
-    FERRY: `<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><rect width="24" height="24" rx="3" fill="#0077b6"/><path d="M5 15 L7 11 L17 11 L19 15 Z" fill="white"/><rect x="11" y="6" width="2.5" height="5" fill="white"/><rect x="9" y="8" width="6" height="2.5" fill="white"/><path d="M4 17 Q8 15.5 12 17 Q16 18.5 20 17" stroke="white" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg>`,
+    // SL.se-stil: svart bakgrund, vita piktogram
+    BUS: `<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><rect width="24" height="24" rx="4" fill="#1a1a1a"/><rect x="4" y="7" width="16" height="9" rx="2" fill="white"/><rect x="6.5" y="9" width="4" height="2.5" rx="0.5" fill="#1a1a1a"/><rect x="13.5" y="9" width="4" height="2.5" rx="0.5" fill="#1a1a1a"/><circle cx="7.5" cy="18" r="1.5" fill="white"/><circle cx="16.5" cy="18" r="1.5" fill="white"/><line x1="4" y1="14.5" x2="20" y2="14.5" stroke="#1a1a1a" stroke-width="1"/></svg>`,
+    METRO: `<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><rect width="24" height="24" rx="4" fill="#1a1a1a"/><circle cx="12" cy="12" r="7.5" stroke="white" stroke-width="2" fill="none"/><text x="12" y="16.5" text-anchor="middle" font-family="Arial Black,Arial,sans-serif" font-size="9.5" font-weight="900" fill="white">T</text></svg>`,
+    TRAM: `<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><rect width="24" height="24" rx="4" fill="#1a1a1a"/><rect x="6" y="6.5" width="12" height="9" rx="2" stroke="white" stroke-width="1.8" fill="none"/><rect x="8.5" y="8.5" width="7" height="2.5" rx="0.5" fill="white"/><line x1="6" y1="13" x2="18" y2="13" stroke="white" stroke-width="1.5"/><circle cx="9" cy="18" r="1.5" fill="white"/><circle cx="15" cy="18" r="1.5" fill="white"/><line x1="9" y1="6.5" x2="9" y2="4.5" stroke="white" stroke-width="1.8"/><line x1="15" y1="6.5" x2="15" y2="4.5" stroke="white" stroke-width="1.8"/><line x1="4" y1="20" x2="20" y2="20" stroke="white" stroke-width="1.5"/></svg>`,
+    TRAIN: `<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><rect width="24" height="24" rx="4" fill="#1a1a1a"/><rect x="6.5" y="4" width="11" height="13" rx="2.5" stroke="white" stroke-width="1.8" fill="none"/><line x1="6.5" y1="10" x2="17.5" y2="10" stroke="white" stroke-width="1.5"/><circle cx="9.5" cy="7" r="1.2" fill="white"/><circle cx="14.5" cy="7" r="1.2" fill="white"/><circle cx="9" cy="19.5" r="2" fill="white"/><circle cx="15" cy="19.5" r="2" fill="white"/><line x1="9" y1="17" x2="9" y2="19.5" stroke="white" stroke-width="1.5"/><line x1="15" y1="17" x2="15" y2="19.5" stroke="white" stroke-width="1.5"/></svg>`,
+    FERRY: `<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><rect width="24" height="24" rx="4" fill="#1a1a1a"/><path d="M4 15 L6.5 10 L17.5 10 L20 15 Z" fill="white"/><rect x="11" y="5" width="2.5" height="5" fill="white"/><rect x="8.5" y="7" width="7" height="2.5" fill="white"/><path d="M3 17.5 Q7.5 16 12 17.5 Q16.5 19 21 17.5" stroke="white" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg>`,
   };
   const svg = icons[m] || icons['BUS'];
   return '<div class="mode-icon-wrap ' + cls + '">' + svg + '</div>';
@@ -1113,7 +1118,7 @@ function lineColor(line, mode) {
     const n = parseInt(line);
     return METRO_LINE_COLOR[n] || '#1d7a3a';
   }
-  if(mode==='BUS')   return '#0062a3';
+  if(mode==='BUS')   return '#1a1a1a';  // Buss: mörkgrå/svart som sl.se
   if(mode==='TRAM')  return '#c0392b';
   if(mode==='TRAIN') return '#6b2fa0';
   if(mode==='FERRY') return '#0077b6';
@@ -1144,23 +1149,21 @@ function renderDetailDeps() {
     const delayMin= (rt&&sch) ? Math.round((rt-sch)/60000) : 0;
     const delayed = delayMin > 1;
 
-    // Minuter kvar
-    let minHtml, clockHtml = '', timeClass = '';
+    let timeHtml, timeClass = '';
     if (d.canceled) {
-      minHtml   = `<span style="color:var(--sl-red);font-size:0.78rem;font-weight:700">Inställd</span>`;
-      clockHtml = '';
+      timeHtml = `<span style="color:var(--sl-red);font-size:0.78rem;font-weight:700">Inställd</span>`;
     } else if (diffMin===null) {
-      minHtml   = `<span class="dep-time-big">–</span>`;
+      timeHtml = `<span class="dep-time-big">–</span>`;
     } else if (diffMin <= 0) {
-      minHtml   = `<span class="dep-time-big now">Nu</span>`;
-      clockHtml = t ? `<span class="dep-clock">${t.toTimeString().slice(0,5)}</span>` : '';
+      timeHtml = `<span class="dep-time-big now">Nu</span>`;
+    } else if (diffMin > 60) {
+      timeHtml = `<span class="dep-time-big">${t.toTimeString().slice(0,5)}</span>`;
     } else {
       timeClass = diffMin <= 2 ? 'soon' : '';
-      minHtml   = `<span class="dep-time-big ${timeClass}">${diffMin} min</span>`;
-      clockHtml = t ? `<span class="dep-clock">${t.toTimeString().slice(0,5)}</span>` : '';
+      timeHtml = `<span class="dep-time-big ${timeClass}">${diffMin} min</span>`;
     }
     if (delayed && !d.canceled) {
-      minHtml += `<div class="dep-delay-note">+${delayMin} min</div>`;
+      timeHtml += `<div class="dep-delay-note">+${delayMin} min</div>`;
     }
 
     return `<div class="dep-row" style="animation-delay:${i*18}ms">
@@ -1168,10 +1171,7 @@ function renderDetailDeps() {
       <div class="dep-badge" style="background:${lineColor(d.line,d.mode)}">${d.line}</div>
       <div class="dep-dest${d.canceled?' canceled':''}">${d.dest}</div>
       ${d.platform?`<div class="dep-platform">Läge ${d.platform}</div>`:''}
-      <div class="dep-time-col">
-        ${minHtml}
-        ${clockHtml}
-      </div>
+      <div class="dep-time-col">${timeHtml}</div>
     </div>`;
   }).join('');
 }
