@@ -2,31 +2,37 @@
 <html lang="sv">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Avgångstavla">
+<meta name="theme-color" content="#005b99">
+<link rel="apple-touch-icon" href="/icon.png">
+<link rel="manifest" href="/manifest.json">
 <title>Avgångstavla</title>
 <style>
 @font-face {
-  font-family:'SL Gothic Text 2', sans-serif;
+  font-family:'SL Gothic Text 2';
   src: url('https://afde-slweb-prod-axgjc2gedaepaveg.z01.azurefd.net/styleguide/8.3.0/staticcss/slgothictext2-regular.woff2') format('woff2');
   font-weight: 400; font-style: normal;
 }
 @font-face {
-  font-family:'SL Gothic Text 2', sans-serif;
+  font-family:'SL Gothic Text 2';
   src: url('https://afde-slweb-prod-axgjc2gedaepaveg.z01.azurefd.net/styleguide/8.3.0/staticcss/slgothictext2-regularitalic.woff2') format('woff2');
   font-weight: 400; font-style: italic;
 }
 @font-face {
-  font-family:'SL Gothic Text 2', sans-serif;
+  font-family:'SL Gothic Text 2';
   src: url('https://afde-slweb-prod-axgjc2gedaepaveg.z01.azurefd.net/styleguide/8.3.0/staticcss/slgothictext2-medium.woff2') format('woff2');
   font-weight: 500; font-style: normal;
 }
 @font-face {
-  font-family:'SL Gothic Text 2', sans-serif;
+  font-family:'SL Gothic Text 2';
   src: url('https://afde-slweb-prod-axgjc2gedaepaveg.z01.azurefd.net/styleguide/8.3.0/staticcss/slgothictext2-mediumitalic.woff2') format('woff2');
   font-weight: 500; font-style: italic;
 }
 @font-face {
-  font-family:'SL Gothic Text 2', sans-serif;
+  font-family:'SL Gothic Text 2';
   src: url('https://afde-slweb-prod-axgjc2gedaepaveg.z01.azurefd.net/styleguide/8.3.0/staticcss/slgothictext2-bold.woff2') format('woff2');
   font-weight: 700; font-style: normal;
 }
@@ -63,10 +69,24 @@ body { font-family:'SL Gothic Text 2', system-ui, sans-serif; background:var(--b
   display: flex;
   align-items: center;
   padding: 0 16px;
+  padding-left: max(16px, env(safe-area-inset-left));
+  padding-right: max(16px, env(safe-area-inset-right));
   gap: 12px;
   position: sticky;
   top: 0;
   z-index: 50;
+}
+/* Status bar area for PWA fullscreen on iPhone */
+.top-nav-spacer {
+  background: var(--sl-blue);
+  height: env(safe-area-inset-top);
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 51;
+}
+body {
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
 }
 .sl-circle {
   width: 34px; height: 34px;
@@ -626,6 +646,7 @@ body { font-family:'SL Gothic Text 2', system-ui, sans-serif; background:var(--b
 <!-- ════════════════════════════════════════ -->
 <!-- VIEW: BOARDS LIST                        -->
 <!-- ════════════════════════════════════════ -->
+<div class="top-nav-spacer"></div>
 <div class="view active" id="view-boards">
   <div class="top-nav">
     <div class="sl-circle">T</div>
