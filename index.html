@@ -9,7 +9,7 @@
 <meta name="theme-color" content="#005b99">
 <link rel="apple-touch-icon" href="/icon.png">
 <link rel="manifest" href="/manifest.json">
-<title>Avgångstavla v2</title>
+<title>Avgångstavla</title>
 <style>
 @font-face {
   font-family:'SL Gothic Text 2';
@@ -1149,18 +1149,20 @@ function renderDetailDeps() {
     const delayMin= (rt&&sch) ? Math.round((rt-sch)/60000) : 0;
     const delayed = delayMin > 1;
 
-    let timeHtml, timeClass = '';
+    let timeHtml, clockHtml = '', timeClass = '';
     if (d.canceled) {
       timeHtml = `<span style="color:var(--sl-red);font-size:0.78rem;font-weight:700">Inställd</span>`;
     } else if (diffMin===null) {
       timeHtml = `<span class="dep-time-big">–</span>`;
     } else if (diffMin <= 0) {
-      timeHtml = `<span class="dep-time-big now">Nu</span>`;
+      timeHtml  = `<span class="dep-time-big now">Nu</span>`;
+      clockHtml = t ? `<span class="dep-clock">${t.toTimeString().slice(0,5)}</span>` : '';
     } else if (diffMin > 60) {
       timeHtml = `<span class="dep-time-big">${t.toTimeString().slice(0,5)}</span>`;
     } else {
       timeClass = diffMin <= 2 ? 'soon' : '';
-      timeHtml = `<span class="dep-time-big ${timeClass}">${diffMin} min</span>`;
+      timeHtml  = `<span class="dep-time-big ${timeClass}">${diffMin} min</span>`;
+      clockHtml = t ? `<span class="dep-clock">${t.toTimeString().slice(0,5)}</span>` : '';
     }
     if (delayed && !d.canceled) {
       timeHtml += `<div class="dep-delay-note">+${delayMin} min</div>`;
@@ -1171,7 +1173,7 @@ function renderDetailDeps() {
       <div class="dep-badge" style="background:${lineColor(d.line,d.mode)}">${d.line}</div>
       <div class="dep-dest${d.canceled?' canceled':''}">${d.dest}</div>
       ${d.platform?`<div class="dep-platform">Läge ${d.platform}</div>`:''}
-      <div class="dep-time-col">${timeHtml}</div>
+      <div class="dep-time-col">${timeHtml}${clockHtml}</div>
     </div>`;
   }).join('');
 }
