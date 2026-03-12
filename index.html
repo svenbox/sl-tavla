@@ -7,58 +7,146 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
         :root {
-            --sl-blue: #005b99; --sl-red: #d4171e; --sl-green: #1d7a3a; --sl-orange: #e8830a; --bg: #121212; --text: #eee;
+            --sl-blue: #005b99; --sl-red: #d4171e; --sl-green: #1d7a3a; --sl-orange: #e8830a; --bg: #121212; --card-bg: #1e1e1e; --text: #eee;
         }
-        body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 0; }
-        .top-bar { background: #000; padding: 15px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #333; }
-        #board-container { padding: 15px; max-width: 800px; margin: 0 auto; }
-        .dep-row { display: flex; align-items: center; padding: 12px; border-bottom: 1px solid #2a2a2a; background: #1e1e1e; margin-bottom: 2px; border-radius: 4px; }
-        .dep-line { width: 45px; height: 28px; color: white; display: flex; align-items: center; justify-content: center; border-radius: 4px; font-weight: 900; font-size: 0.9rem; flex-shrink: 0; }
-        .dep-dest { flex: 1; margin: 0 15px; font-weight: 600; font-size: 1.1rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-        .dep-time { font-weight: 900; color: var(--sl-orange); min-width: 70px; text-align: right; }
+        body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); margin:0; padding:0; }
+        .top-bar { background: #000; padding: 15px; display: flex; justify-content: space-between; align-items: center; position: sticky; top:0; z-index:100; border-bottom: 1px solid #333; }
+        .view { display: none; padding: 15px; max-width: 800px; margin: 0 auto; }
+        .view.active { display: block; }
+        .board-card { background: var(--card-bg); border-radius: 12px; margin-bottom: 20px; overflow: hidden; border: 1px solid #333; }
+        .board-header { padding: 15px; display: flex; justify-content: space-between; background: rgba(255,255,255,0.05); }
+        .dep-row { display: flex; align-items: center; padding: 12px 15px; border-bottom: 1px solid #2a2a2a; }
+        .dep-line { width: 42px; height: 26px; color: white; display: flex; align-items: center; justify-content: center; border-radius: 4px; font-weight: 900; font-size: 0.85rem; flex-shrink: 0; }
+        .dep-dest { flex: 1; margin: 0 12px; font-weight: 600; font-size: 1rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .dep-time { font-weight: 900; color: var(--sl-orange); min-width: 65px; text-align: right; }
         .canceled { text-decoration: line-through; opacity: 0.4; }
+        .btn-primary { background: var(--sl-blue); color: white; border: none; padding: 15px; width: 100%; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 1rem; }
+        input { width: 100%; padding: 15px; margin: 10px 0; border: 1px solid #444; background: #222; color: white; border-radius: 8px; font-size: 1rem; }
+        .search-item { padding: 15px; border-bottom: 1px solid #333; cursor: pointer; background: #252525; margin-bottom: 5px; border-radius: 4px; }
     </style>
 </head>
 <body>
 
 <div class="top-bar">
-    <h1 style="font-size: 1.2rem; margin: 0;">SL LIVE</h1>
-    <div id="status-dot" style="width: 10px; height: 10px; background: #1d7a3a; border-radius: 50%;"></div>
+    <h1 onclick="showView('boards')" style="cursor:pointer; font-size:1.2rem; margin:0;">SL LIVE</h1>
+    <button onclick="showView('create')" style="background:var(--sl-blue); border:none; color:white; width:35px; height:35px; border-radius:50%; font-size:1.2rem; cursor:pointer; font-weight:bold;">＋</button>
 </div>
 
-<div id="board-container">
-    <p style="text-align:center; padding:20px; color:#666;">Hämtar avgångar...</p>
+<div id="view-boards" class="view active">
+    <div id="boards-list"></div>
+    <div id="empty-msg" style="text-align:center; padding:60px; color:#666; display:none;">
+        <p>Inga tavlor sparade.</p>
+        <button class="btn-primary" onclick="showView('create')" style="margin-top:20px; width:auto;">Lägg till hållplats</button>
+    </div>
+</div>
+
+<div id="view-create" class="view">
+    <div class="board-card" style="padding:20px;">
+        <h2 style="margin-top:0;">Sök hållplats</h2>
+        <input type="text" id="stop-search" placeholder="Sök station (t.ex. Slussen)..." oninput="debounceSearch(this.value)">
+        <div id="search-results"></div>
+        <button class="btn-primary" onclick="showView('boards')" style="background:#444; margin-top:15px;">Avbryt</button>
+    </div>
 </div>
 
 <script>
-    // 1. Konfiguration
-    const P = "/proxy?url=";
-    const DEFAULT_SITE_ID = '9192'; // Ändra till ditt föredragna SiteID (t.ex. 9192 för Slussen)
+    const P = '/proxy?url=';
+    let boards = JSON.parse(localStorage.getItem('sl_boards') || '[]');
+    let searchTimer;
 
-    // 2. Funktion för att hämta data
-    async function fetchSLDeps(siteId) {
-        // Vi hämtar 30 st för att vara säkra på att få med allt (Buss, Tåg, T-bana)
-        const targetUrl = `https://transport.integration.sl.se/v1/sites/${siteId}/departures?limit=30`;
+    function showView(id) {
+        document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+        document.getElementById('view-' + id).classList.add('active');
+        if(id === 'boards') renderAllBoards();
+    }
+
+    // Sökfunktion
+    function debounceSearch(q) {
+        clearTimeout(searchTimer);
+        searchTimer = setTimeout(() => executeSearch(q), 400);
+    }
+
+    async function executeSearch(q) {
+        if(q.length < 3) return;
+        const url = `https://transport.integration.sl.se/v1/sites?search-term=${encodeURIComponent(q)}&max-results=8`;
         try {
-            const r = await fetch(P + encodeURIComponent(targetUrl));
-            if (!r.ok) throw new Error("Proxy error");
-            const d = await r.json();
-            
-            return (d.departures || []).map(x => ({
-                line: x.line?.designation || '?',
-                mode: x.line?.transport_mode,
-                dest: x.destination || '–',
-                time: x.expected || x.scheduled,
-                state: x.state,
-                deviations: x.deviations || []
-            }));
-        } catch (e) {
-            console.error("Hämtningsfel:", e);
-            return null;
+            const res = await fetch(P + encodeURIComponent(url));
+            const data = await res.json();
+            const resDiv = document.getElementById('search-results');
+            resDiv.innerHTML = data.map(s => `
+                <div class="search-item" onclick="addBoard('${s.id}', '${s.name}')">
+                    ${s.name} <small style="color:#888; float:right;">${s.id}</small>
+                </div>
+            `).join('');
+        } catch(e) { console.error("Sökfel", e); }
+    }
+
+    function addBoard(id, name) {
+        if(!boards.find(b => b.stopId === id)) {
+            boards.push({stopId: id, name: name});
+            localStorage.setItem('sl_boards', JSON.stringify(boards));
+        }
+        showView('boards');
+    }
+
+    function deleteBoard(idx) {
+        if(confirm("Ta bort tavlan?")) {
+            boards.splice(idx, 1);
+            localStorage.setItem('sl_boards', JSON.stringify(boards));
+            renderAllBoards();
         }
     }
 
-    // 3. Hjälpfunktion för färger
+    // Rendering av tavlor
+    async function renderAllBoards() {
+        const list = document.getElementById('boards-list');
+        const empty = document.getElementById('empty-msg');
+        list.innerHTML = '';
+        
+        if(boards.length === 0) { empty.style.display = 'block'; return; }
+        empty.style.display = 'none';
+
+        boards.forEach((b, idx) => {
+            const card = document.createElement('div');
+            card.className = 'board-card';
+            card.innerHTML = `
+                <div class="board-header">
+                    <strong>${b.name}</strong>
+                    <span onclick="deleteBoard(${idx})" style="cursor:pointer; opacity:0.5;">✕</span>
+                </div>
+                <div id="deps-${idx}">Laddar...</div>
+            `;
+            list.appendChild(card);
+            loadBoardData(b.stopId, idx);
+        });
+    }
+
+    async function loadBoardData(id, idx) {
+        const url = `https://transport.integration.sl.se/v1/sites/${id}/departures?limit=15`;
+        try {
+            const res = await fetch(P + encodeURIComponent(url));
+            const data = await res.json();
+            const div = document.getElementById(`deps-${idx}`);
+            
+            if(!data.departures || data.departures.length === 0) {
+                div.innerHTML = '<p style="padding:15px; color:#666;">Inga avgångar.</p>';
+                return;
+            }
+
+            div.innerHTML = data.departures.map(d => {
+                const color = getLineColor(d.line.designation, d.line.transport_mode);
+                const isCanceled = d.state === 'CANCELLED';
+                return `
+                    <div class="dep-row">
+                        <div class="dep-line" style="background:${color}">${d.line.designation}</div>
+                        <div class="dep-dest ${isCanceled ? 'canceled' : ''}">${d.destination} ${d.deviations?.length ? '⚠️' : ''}</div>
+                        <div class="dep-time">${isCanceled ? 'Inställd' : formatTime(d.expected || d.scheduled)}</div>
+                    </div>
+                `;
+            }).join('');
+        } catch(e) { console.error(e); }
+    }
+
     function getLineColor(line, mode) {
         if (mode === 'METRO') {
             if (['10','11'].includes(line)) return '#005b99';
@@ -71,61 +159,16 @@
         return '#444';
     }
 
-    // 4. Formatera tid
     function formatTime(iso) {
         const diff = Math.round((new Date(iso) - new Date()) / 60000);
         if (diff <= 0) return 'Nu';
-        if (diff > 25) {
-            const d = new Date(iso);
-            return d.getHours().toString().padStart(2,'0') + ':' + d.getMinutes().toString().padStart(2,'0');
-        }
+        if (diff > 25) return new Date(iso).getHours().toString().padStart(2,'0') + ':' + new Date(iso).getMinutes().toString().padStart(2,'0');
         return diff + ' min';
     }
 
-    // 5. Huvudfunktion för att rita tavlan
-    async function updateBoard() {
-        const container = document.getElementById('board-container');
-        const data = await fetchSLDeps(DEFAULT_SITE_ID);
-
-        if (!data) {
-            // Visa felmeddelande om vi inte får kontakt med proxyn
-            document.getElementById('status-dot').style.background = 'red';
-            return;
-        }
-
-        document.getElementById('status-dot').style.background = '#1d7a3a';
-
-        // Filtrera bort färjor om du vill (valfritt, kommentera bort nästa rad för att se ALLT)
-        // const filtered = data.filter(d => d.mode !== 'SHIP'); 
-        const filtered = data; 
-
-        if (filtered.length === 0) {
-            container.innerHTML = "<p style='text-align:center;'>Inga avgångar hittades.</p>";
-            return;
-        }
-
-        container.innerHTML = filtered.slice(0, 12).map(d => {
-            const color = getLineColor(d.line, d.mode);
-            const isCanceled = d.state === 'CANCELLED';
-            return `
-                <div class="dep-row">
-                    <div class="dep-line" style="background:${color}">${d.line}</div>
-                    <div class="dep-dest ${isCanceled ? 'canceled' : ''}">
-                        ${d.dest} ${d.deviations.length > 0 ? '⚠️' : ''}
-                    </div>
-                    <div class="dep-time">${isCanceled ? 'Inställd' : formatTime(d.time)}</div>
-                </div>
-            `;
-        }).join('');
-    }
-
-    // 6. Starta och sätt interval
-    updateBoard();
-    setInterval(updateBoard, 30000);
-
-    // En tom showView för att undvika felmeddelanden om knappar finns kvar i HTML
-    function showView(view) { console.log("Byter vy till:", view); }
+    // Init
+    showView('boards');
+    setInterval(renderAllBoards, 30000);
 </script>
-
 </body>
 </html>
