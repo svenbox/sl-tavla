@@ -18,6 +18,8 @@ services:
       dockerfile: Dockerfile.proxy
     container_name: sl-proxy
     restart: unless-stopped
+    environment:
+      - TL_API_KEY=${TL_API_KEY}
     networks:
       - sl-net
 

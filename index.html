@@ -58,6 +58,21 @@
 * { margin:0; padding:0; box-sizing:border-box; }
 body { font-family:'SL Gothic Text 2', system-ui, sans-serif; background:var(--bg); color:var(--text); min-height:100vh; }
 
+
+/* ── TRANSPORT MODE ICONS (SVG, no emoji) ── */
+.mode-icon-wrap {
+  width: 28px; height: 28px;
+  border-radius: 3px;
+  flex-shrink: 0;
+  overflow: hidden;
+  display: flex; align-items: center; justify-content: center;
+}
+.mode-icon-wrap svg { width: 28px; height: 28px; }
+.mode-icon-wrap.sm { width: 22px; height: 22px; }
+.mode-icon-wrap.sm svg { width: 22px; height: 22px; }
+.mode-icon-wrap.lg { width: 40px; height: 40px; }
+.mode-icon-wrap.lg svg { width: 40px; height: 40px; }
+
 /* ── VIEWS ── */
 .view { display:none; }
 .view.active { display:block; }
@@ -164,13 +179,13 @@ body {
 
 .sign-mode-icon {
   width: 30px; height: 30px;
-  background: white;
   border-radius: 3px;
   display: flex; align-items: center; justify-content: center;
-  font-size: 1rem;
   flex-shrink: 0;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+  overflow: hidden;
 }
+.sign-mode-icon .mode-icon-wrap { width: 30px; height: 30px; }
+.sign-mode-icon .mode-icon-wrap svg { width: 30px; height: 30px; }
 .sign-stop-name {
   color: white;
   font-family:'SL Gothic Text 2', sans-serif;
@@ -298,13 +313,13 @@ body {
 
 .big-sign-icon {
   width: 46px; height: 46px;
-  background: white;
   border-radius: 4px;
   display: flex; align-items: center; justify-content: center;
-  font-size: 1.7rem;
   flex-shrink: 0;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+  overflow: hidden;
 }
+.big-sign-icon .mode-icon-wrap { width: 46px; height: 46px; }
+.big-sign-icon .mode-icon-wrap svg { width: 46px; height: 46px; }
 .big-sign-info { flex: 1; }
 .big-sign-stop {
   color: white;
@@ -654,14 +669,7 @@ body {
     <button class="nav-btn" onclick="showView('create')">＋ Ny tavla</button>
   </div>
 
-  <div class="setup-card" id="setup-card-boards" style="display:none">
-    <h3>API-nyckel behövs</h3>
-    <p>Skaffa gratis nyckel på <a href="https://trafiklab.se" target="_blank">trafiklab.se</a> → Mina nycklar → <strong>Trafiklab Realtime APIs</strong>.</p>
-    <div class="key-row">
-      <input class="key-input" type="text" id="api-key-input" placeholder="Klistra in nyckel…">
-      <button class="btn-save" onclick="saveKey()">Spara</button>
     </div>
-  </div>
 
   <div class="boards-container">
     <div class="boards-title">Mina tavlor</div>
@@ -669,8 +677,8 @@ body {
     <div class="boards-grid" id="boards-grid"></div>
   </div>
 
-  <details class="debug-wrap"><summary>🐛 Debug</summary><div class="debug-log" id="debug-log"></div></details>
-  <div class="credits">Data: <a href="https://trafiklab.se" target="_blank">Trafiklab.se</a> / SL – CC BY 4.0 &nbsp;·&nbsp; <span id="key-status-line"></span></div>
+  <details class="debug-wrap"><summary>⚙ Debug</summary><div class="debug-log" id="debug-log"></div></details>
+  <div class="credits">Data: <a href="https://trafiklab.se" target="_blank">Trafiklab.se</a> / SL – CC BY 4.0</div>
 </div>
 
 <!-- ════════════════════════════════════════ -->
@@ -679,7 +687,7 @@ body {
 <div class="view" id="view-detail">
   <!-- Big SL sign header -->
   <div class="big-sign" id="detail-sign">
-    <div class="big-sign-icon" id="detail-icon">🚌</div>
+    <div class="big-sign-icon" id="detail-icon"></div>
     <div class="big-sign-info">
       <div class="big-sign-stop" id="detail-stop">–</div>
       <div class="big-sign-board" id="detail-board">–</div>
@@ -712,7 +720,7 @@ body {
 
     <div class="loading-bar" id="detail-loading" style="display:none"><div class="loading-bar-inner"></div></div>
     <div class="dep-list" id="detail-dep-list">
-      <div class="state-box"><div class="icon">⏳</div><h3>Laddar…</h3></div>
+      <div class="state-box"><div class="icon" style="color:#005b99"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#005b99" stroke-width="2" stroke-linecap="round"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" stroke-opacity="0.4"/><path d="M12 2v4" stroke-opacity="1"/></svg></div><h3>Laddar…</h3></div>
     </div>
   </div>
 </div>
@@ -744,7 +752,7 @@ body {
         <div class="dropdown" id="create-dropdown"></div>
       </div>
       <div class="selected-stop-box" id="selected-stop-box">
-        <span>📍</span>
+        <span style="color:var(--sl-blue);display:flex"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg></span>
         <span class="selected-stop-name" id="selected-stop-name">–</span>
         <button class="clear-stop" onclick="clearStop()">✕</button>
       </div>
@@ -772,11 +780,11 @@ body {
     <div class="form-section">
       <label class="form-label">4. Visa färdsätt (standard)</label>
       <div class="mode-pills-create" id="create-mode-pills">
-        <div class="mode-pill-create on" data-mode="BUS">🚌 Buss</div>
-        <div class="mode-pill-create on" data-mode="METRO">🚇 Tunnelbana</div>
-        <div class="mode-pill-create on" data-mode="TRAM">🚋 Spårvagn</div>
-        <div class="mode-pill-create on" data-mode="TRAIN">🚆 Tåg</div>
-        <div class="mode-pill-create on" data-mode="FERRY">⛴ Båt</div>
+        <div class="mode-pill-create on" data-mode="BUS">Buss</div>
+        <div class="mode-pill-create on" data-mode="METRO">Tunnelbana</div>
+        <div class="mode-pill-create on" data-mode="TRAM">Spårvagn</div>
+        <div class="mode-pill-create on" data-mode="TRAIN">Tåg</div>
+        <div class="mode-pill-create on" data-mode="FERRY">Båt</div>
       </div>
       <div style="font-size:0.73rem;color:var(--text3);margin-top:6px;">Du kan alltid ändra när du tittar på tavlan.</div>
     </div>
@@ -791,7 +799,7 @@ body {
 // ═══════════════════════════════════════════
 // CONFIG & STATE
 const P = '/api/proxy?url=';
-let API_KEY = localStorage.getItem('tl_key') || '';
+// API-nyckel hanteras server-side av proxy – ej i frontend
 
 let boards        = JSON.parse(localStorage.getItem('sl_boards') || '[]');
 let currentBoard  = null;
@@ -809,8 +817,9 @@ let createModes   = new Set(['BUS','METRO','TRAM','TRAIN','FERRY']);
 
 // ═══════════════════════════════════════════
 // URLS
-function tlStopUrl(q)  { return P + encodeURIComponent(`https://realtime-api.trafiklab.se/v1/stops/name/${encodeURIComponent(q)}?key=${API_KEY}`); }
-function tlDepUrl(id)  { return P + encodeURIComponent(`https://realtime-api.trafiklab.se/v1/departures/${id}?key=${API_KEY}`); }
+// API-nyckel hanteras av proxy-servern – ingenting känsligt i frontend
+function tlStopUrl(q)  { return P + encodeURIComponent(`https://realtime-api.trafiklab.se/v1/stops/name/${encodeURIComponent(q)}`); }
+function tlDepUrl(id)  { return P + encodeURIComponent(`https://realtime-api.trafiklab.se/v1/departures/${id}`); }
 function slStopUrl(q)  { return P + encodeURIComponent(`https://transport.integration.sl.se/v1/sites?expand=false&q=${encodeURIComponent(q)}`); }
 function slDepUrl(id)  { return P + encodeURIComponent(`https://transport.integration.sl.se/v1/sites/${id}/departures`); }
 
@@ -836,8 +845,6 @@ function showView(v) {
 // ═══════════════════════════════════════════
 // KEY
 function init() {
-  updateKeyLabel();
-  if (!API_KEY) document.getElementById('setup-card-boards').style.display = 'block';
   renderBoards();
   // Mode pill toggles in create view
   document.querySelectorAll('.mode-pill-create').forEach(el => {
@@ -853,29 +860,10 @@ function init() {
       }
     });
   });
-  dbg('Init. Nyckel:', API_KEY ? API_KEY.slice(0,8)+'…' : 'SAKNAS');
+  dbg('Init.');
 }
 
-function saveKey() {
-  const v = document.getElementById('api-key-input').value.trim();
-  if (!v) return;
-  API_KEY = v;
-  localStorage.setItem('tl_key', v);
-  document.getElementById('setup-card-boards').style.display = 'none';
-  updateKeyLabel();
-  dbg('Nyckel sparad');
-}
 
-function updateKeyLabel() {
-  const el = document.getElementById('key-status-line');
-  if (!el) return;
-  el.textContent = API_KEY ? `Nyckel: ${API_KEY.slice(0,8)}… (ändra)` : 'Ingen nyckel';
-  el.onclick = () => {
-    const c = document.getElementById('setup-card-boards');
-    c.style.display = c.style.display === 'none' ? 'block' : 'none';
-    document.getElementById('api-key-input').value = API_KEY;
-  };
-}
 
 // ═══════════════════════════════════════════
 // BOARDS RENDER
@@ -883,12 +871,27 @@ const STRIPE_COLORS = { blue:'#005b99', red:'#d4171e', green:'#1d7a3a', orange:'
 const MODE_LABEL_SV = { BUS:'Buss', METRO:'Tunnelbana', SUBWAY:'Tunnelbana', TRAM:'Spårvagn', TRAIN:'Tåg', FERRY:'Båt', LIGHT_RAIL:'Spårväg' };
 const MODE_ICON_EMOJI = { BUS:'🚌', METRO:'🚇', SUBWAY:'🚇', TRAM:'🚋', TRAIN:'🚆', FERRY:'⛴', LIGHT_RAIL:'🚋' };
 
+// ─── SVG TRANSPORT ICONS ───────────────────────────────────────────
+function modeIconSVG(m, size) {
+  const cls = size === 'lg' ? 'lg' : size === 'sm' ? 'sm' : '';
+  const icons = {
+    BUS: `<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><rect width="24" height="24" rx="3" fill="#005b99"/><rect x="5" y="7" width="14" height="9" rx="1.5" fill="white"/><rect x="7" y="9" width="4" height="3" rx="0.5" fill="#005b99"/><rect x="13" y="9" width="4" height="3" rx="0.5" fill="#005b99"/><circle cx="8" cy="18" r="1.8" fill="white"/><circle cx="16" cy="18" r="1.8" fill="white"/><rect x="5" y="14" width="14" height="1.5" fill="#005b99"/></svg>`,
+    METRO: `<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><rect width="24" height="24" rx="3" fill="#111"/><circle cx="12" cy="12" r="7" stroke="white" stroke-width="2.5" fill="none"/><text x="12" y="16.5" text-anchor="middle" font-family="Arial,sans-serif" font-size="10" font-weight="900" fill="white">T</text></svg>`,
+    TRAM: `<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><rect width="24" height="24" rx="3" fill="#c0392b"/><rect x="7" y="7" width="10" height="9" rx="1.5" stroke="white" stroke-width="2" fill="none"/><rect x="9" y="9" width="6" height="2.5" rx="0.5" fill="white"/><line x1="7" y1="14" x2="17" y2="14" stroke="white" stroke-width="1.5"/><circle cx="9.5" cy="18.5" r="1.5" fill="white"/><circle cx="14.5" cy="18.5" r="1.5" fill="white"/><line x1="9" y1="7" x2="9" y2="5" stroke="white" stroke-width="1.5"/><line x1="15" y1="7" x2="15" y2="5" stroke="white" stroke-width="1.5"/></svg>`,
+    TRAIN: `<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><rect width="24" height="24" rx="3" fill="#6b2fa0"/><rect x="7" y="4" width="10" height="13" rx="2" stroke="white" stroke-width="2" fill="none"/><line x1="7" y1="10" x2="17" y2="10" stroke="white" stroke-width="1.5"/><circle cx="9.5" cy="7" r="1" fill="white"/><circle cx="14.5" cy="7" r="1" fill="white"/><circle cx="9.5" cy="19.5" r="1.8" fill="white"/><circle cx="14.5" cy="19.5" r="1.8" fill="white"/></svg>`,
+    FERRY: `<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><rect width="24" height="24" rx="3" fill="#0077b6"/><path d="M5 15 L7 11 L17 11 L19 15 Z" fill="white"/><rect x="11" y="6" width="2.5" height="5" fill="white"/><rect x="9" y="8" width="6" height="2.5" fill="white"/><path d="M4 17 Q8 15.5 12 17 Q16 18.5 20 17" stroke="white" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg>`,
+  };
+  const svg = icons[m] || icons['BUS'];
+  return '<div class="mode-icon-wrap ' + cls + '">' + svg + '</div>';
+}
+
+
 function renderBoards() {
   const grid = document.getElementById('boards-grid');
   if (!boards.length) {
     grid.innerHTML = `
       <div class="add-card" onclick="showView('create')" style="grid-column:1/-1;max-width:340px;margin:0 auto">
-        <div class="add-card-icon">➕</div>
+        <div class="add-card-icon"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></div>
         <div class="add-card-label">Skapa din första tavla</div>
         <div style="font-size:0.75rem;color:inherit;text-align:center;margin-top:4px">Välj hållplats, namn och färgsättning</div>
       </div>`;
@@ -898,11 +901,11 @@ function renderBoards() {
   grid.innerHTML = boards.map((b, i) => {
     const color = STRIPE_COLORS[b.color] || STRIPE_COLORS.blue;
     const modes = (b.defaultModes || ['BUS','METRO','TRAM','TRAIN','FERRY']);
-    const icons = [...new Set(modes)].map(m => MODE_ICON_EMOJI[m] || '').join('');
+    const primaryMode = [...new Set(modes)][0] || 'BUS';
     return `
     <div class="sign-card" onclick="openBoard(${i})">
       <div class="sign-stripe" style="background:${color}">
-        <div class="sign-mode-icon">${icons.slice(0,3)||'🚌'}</div>
+        <div class="sign-mode-icon">${modeIconSVG(primaryMode)}</div>
         <div>
           <div class="sign-stop-name">${b.stopName}</div>
           <div class="sign-board-name">${b.name}</div>
@@ -919,7 +922,7 @@ function renderBoards() {
     </div>`;
   }).join('') + `
     <div class="add-card" onclick="showView('create')">
-      <div class="add-card-icon">➕</div>
+      <div class="add-card-icon"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></div>
       <div class="add-card-label">Ny tavla</div>
     </div>`;
 }
@@ -943,8 +946,8 @@ function openBoard(i) {
   sign.style.background = color;
 
   const modes = currentBoard.defaultModes || [];
-  document.getElementById('detail-icon').textContent =
-    [...new Set(modes)].map(m => MODE_ICON_EMOJI[m]||'').join('').slice(0,2) || '🚌';
+  const primaryMode = [...new Set(modes)][0] || 'BUS';
+  document.getElementById('detail-icon').innerHTML = modeIconSVG(primaryMode, 'lg');
 
   document.getElementById('detail-stop').textContent  = currentBoard.stopName;
   document.getElementById('detail-board').textContent = currentBoard.name;
@@ -963,19 +966,15 @@ async function loadDetailDepartures() {
   document.getElementById('detail-loading').style.display = 'block';
   document.getElementById('detail-refresh-btn').classList.add('spinning');
   document.getElementById('detail-dep-list').innerHTML =
-    '<div class="state-box"><div class="icon">⏳</div><h3>Hämtar avgångar…</h3></div>';
+    '<div class="state-box"><div class="icon" style="color:#005b99"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#005b99" stroke-width="2" stroke-linecap="round"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" stroke-opacity="0.4"/><path d="M12 2v4" stroke-opacity="1"/></svg></div><h3>Hämtar avgångar…</h3></div>';
 
   try {
     const s = currentBoard.source;
     const id = currentBoard.stopId;
     let raw = [];
 
-    if (s === 'sl' || !API_KEY) {
-      raw = await fetchSLDeps(id);
-    } else {
-      try { raw = await fetchTLDeps(id); }
-      catch(e) { dbg('TL fallback till SL:', e.message); raw = await fetchSLDeps(id); }
-    }
+    try { raw = await fetchTLDeps(id); }
+    catch(e) { dbg('TL fallback till SL:', e.message); raw = await fetchSLDeps(id); }
 
     detailDeps = raw;
     detailModes = new Set(raw.map(d => d.mode));
@@ -993,7 +992,7 @@ async function loadDetailDepartures() {
     dbg('DEP FEL:', e.message);
     document.getElementById('detail-dep-list').innerHTML = `
       <div class="state-box">
-        <div class="icon">⚠️</div>
+        <div class="icon"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#d4171e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div>
         <h3>Kunde inte hämta avgångar</h3>
         <p>${e.message}</p>
       </div>`;
@@ -1114,7 +1113,7 @@ function renderDetailDeps() {
 
   if (!list.length) {
     document.getElementById('detail-dep-list').innerHTML =
-      '<div class="state-box"><div class="icon">🚏</div><h3>Inga avgångar</h3><p>Inga avgångar matchar valt färdsätt.</p></div>';
+      '<div class="state-box"><div class="icon"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#888" stroke-width="1.5" stroke-linecap="round"><circle cx="12" cy="5" r="2"/><path d="M12 7v10"/><path d="M12 10h5l-2 2 2 2H12"/></svg></div><h3>Inga avgångar</h3><p>Inga avgångar matchar valt färdsätt.</p></div>';
     return;
   }
 
@@ -1144,7 +1143,7 @@ function renderDetailDeps() {
     }
 
     return `<div class="dep-row" style="animation-delay:${i*18}ms">
-      <div class="dep-mode-circle ${modeCircleClass(d.mode)}">${modeCircleChar(d.mode)}</div>
+      ${modeIconSVG(d.mode)}
       <div class="dep-badge" style="background:${lineColor(d.line,d.mode)}">${d.line}</div>
       <div class="dep-dest${d.canceled?' canceled':''}">${d.dest}</div>
       ${d.platform?`<div class="dep-platform">Läge ${d.platform}</div>`:''}
@@ -1204,17 +1203,15 @@ function onCreateSearchFocus() {
 
 async function doCreateSearch(q) {
   showCreateDDMsg('Söker…');
-  if (API_KEY) {
-    try {
-      const r = await fetch(tlStopUrl(q));
-      dbg('Create TL stop:', r.status);
-      if (r.ok) {
-        const d = await r.json();
-        const groups = d.stop_groups || [];
-        if (groups.length) { renderCreateTLStops(groups); return; }
-      }
-    } catch(e) { dbg('Create TL exception:', e.message); }
-  }
+  try {
+    const r = await fetch(tlStopUrl(q));
+    dbg('Create TL stop:', r.status);
+    if (r.ok) {
+      const d = await r.json();
+      const groups = d.stop_groups || [];
+      if (groups.length) { renderCreateTLStops(groups); return; }
+    }
+  } catch(e) { dbg('Create TL exception:', e.message); }
   try {
     const r = await fetch(slStopUrl(q));
     dbg('Create SL stop:', r.status);
@@ -1229,7 +1226,7 @@ function renderCreateTLStops(groups) {
   const dd = document.getElementById('create-dropdown');
   dd.innerHTML = groups.slice(0,8).map(g =>
     `<div class="dd-item" onclick="pickStop('${g.id}','${esc(g.name)}','tl')">
-      <span>📍</span><span class="dd-name">${g.name}</span><span class="dd-id">${g.id}</span>
+      <span style="color:var(--sl-blue);display:flex"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg></span><span class="dd-name">${g.name}</span><span class="dd-id">${g.id}</span>
     </div>`).join('');
   dd.classList.add('open');
 }
@@ -1238,7 +1235,7 @@ function renderCreateSLStops(sites) {
   const dd = document.getElementById('create-dropdown');
   dd.innerHTML = sites.map(s =>
     `<div class="dd-item" onclick="pickStop('${s.id}','${esc(s.name)}','sl')">
-      <span>📍</span><span class="dd-name">${s.name}</span><span class="dd-id">SL ${s.id}</span>
+      <span style="color:var(--sl-blue);display:flex"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg></span><span class="dd-name">${s.name}</span><span class="dd-id">SL ${s.id}</span>
     </div>`).join('');
   dd.classList.add('open');
 }
