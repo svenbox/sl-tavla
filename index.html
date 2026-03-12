@@ -1,125 +1,92 @@
 <!DOCTYPE html>
-<html lang="sv">
+<html>
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SL FIX</title>
+    <title>SL DEBUG MODE</title>
     <style>
-        body { background: #111; color: #fff; font-family: sans-serif; padding: 20px; }
-        .card { background: #222; padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #333; }
-        input { width: 100%; padding: 12px; box-sizing: border-box; background: #000; color: #fff; border: 1px solid #444; }
-        .search-res { padding: 10px; border-bottom: 1px solid #333; cursor: pointer; background: #2a2a2a; margin-top: 5px; }
-        .dep-row { display: flex; padding: 10px; border-bottom: 1px solid #333; align-items: center; }
-        .line { background: #d4171e; color: #fff; padding: 4px 8px; border-radius: 4px; font-weight: bold; margin-right: 15px; }
-        .dest { flex: 1; font-weight: bold; }
-        .time { color: #e8830a; font-weight: bold; }
-        button { background: #444; color: #fff; border: none; padding: 10px; cursor: pointer; margin-top: 10px; border-radius: 4px; }
+        body { background: #000; color: #0f0; font-family: monospace; padding: 20px; }
+        .log { border: 1px solid #333; padding: 10px; margin-bottom: 20px; font-size: 0.8rem; color: #aaa; }
+        .row { display: flex; background: #111; padding: 10px; border-bottom: 1px solid #222; }
+        .line { color: #fff; background: #d4171e; padding: 2px 6px; margin-right: 10px; }
+        input { width: 100%; padding: 10px; background: #222; color: #fff; border: 1px solid #444; }
+        .res { padding: 10px; cursor: pointer; border-bottom: 1px solid #333; }
     </style>
 </head>
 <body>
 
-    <div class="card">
-        <h3>Sök hållplats</h3>
-        <input type="text" id="inp" placeholder="T.ex. Slussen eller Odenplan...">
-        <div id="results"></div>
-        <button onclick="clearAll()" style="background: #900;">Nollställ allt</button>
-    </div>
+    <h2>1. SÖK HÅLLPLATS</h2>
+    <input type="text" id="sok" placeholder="Skriv station...">
+    <div id="sok-resultat"></div>
 
-    <div id="board-title"></div>
-    <div id="board"></div>
+    <h2>2. STATUS LOGG</h2>
+    <div id="logg" class="log">Väntar på input...</div>
+
+    <h2>3. AVGÅNGAR (Endast Buss/Tåg/T-bana)</h2>
+    <div id="tavla"></div>
 
 <script>
     const P = "/proxy?url=";
-    
-    // Hämta data säkert från localStorage
-    let savedBoard = null;
-    try {
-        const raw = localStorage.getItem('sl_boards_v2');
-        if (raw) savedBoard = JSON.parse(raw);
-    } catch(e) { console.error("Data error", e); }
 
-    // Sökfunktion
-    document.getElementById('inp').oninput = async (e) => {
-        const q = e.target.value;
-        if(q.length < 3) return;
+    // Logga händelser till skärmen så vi ser vad som händer
+    function log(msg) {
+        document.getElementById('logg').innerHTML += ">< " + msg + "<br>";
+        console.log(msg);
+    }
+
+    // SÖK-FUNKTION
+    document.getElementById('sok').oninput = async (e) => {
+        const v = e.target.value;
+        if(v.length < 3) return;
+        
+        log("Söker efter: " + v);
         try {
-            const res = await fetch(P + encodeURIComponent("https://transport.integration.sl.se/v1/sites?search-term=" + q));
-            const data = await res.json();
-            document.getElementById('results').innerHTML = data.slice(0,8).map(s => `
-                <div class="search-res" onclick="save('${s.id}', '${s.name}')">
-                    <strong>${s.name}</strong> <small>(ID: ${s.id})</small>
-                </div>
+            const r = await fetch(P + encodeURIComponent("https://transport.integration.sl.se/v1/sites?search-term=" + v));
+            const data = await r.json();
+            log("Sökning klar, hittade " + data.length + " platser");
+            
+            document.getElementById('sok-resultat').innerHTML = data.slice(0,5).map(s => `
+                <div class="res" onclick="valj('${s.id}', '${s.name}')">KLICKA HÄR: ${s.name} (ID: ${s.id})</div>
             `).join('');
-        } catch(err) { console.error("Sökfel", err); }
+        } catch(e) { log("SÖKFEL: " + e.message); }
     };
 
-    function save(id, name) {
-        localStorage.setItem('sl_boards_v2', JSON.stringify({id, name}));
-        location.reload();
-    }
-
-    function clearAll() {
-        localStorage.clear();
-        location.reload();
-    }
-
-    async function loadBoard() {
-        if(!savedBoard || !savedBoard.id) {
-            document.getElementById('board').innerHTML = "<p style='color:#666'>Ingen hållplats vald. Sök ovan!</p>";
+    // NÄR MAN KLICKAR PÅ EN HÅLLPLATS
+    async function valj(id, namn) {
+        log("Valde: " + namn + " ID: " + id);
+        if(!id || id === 'undefined') {
+            log("FEL: ID är undefined!");
             return;
         }
-
-        document.getElementById('board-title').innerHTML = `<h2>${savedBoard.name}</h2>`;
+        
+        const url = `https://transport.integration.sl.se/v1/sites/${id}/departures?limit=50`;
+        log("Hämtar avgångar från: " + url);
         
         try {
-            // Nu använder vi savedBoard.id som vi VET finns
-            const target = `https://transport.integration.sl.se/v1/sites/${savedBoard.id}/departures?limit=60`;
-            const res = await fetch(P + encodeURIComponent(target));
+            const r = await fetch(P + encodeURIComponent(url));
+            if(!r.ok) { log("SERVER-FEL: " + r.status); return; }
             
-            if (!res.ok) throw new Error("Server error " + res.status);
-            
-            const data = await res.json();
-            
-            // FILTRERING: Ta bort färjor (SHIP), visa bara Buss, T-bana och Tåg
-            const filtered = (data.departures || []).filter(d => 
-                d.line.transport_mode === 'BUS' || 
-                d.line.transport_mode === 'METRO' || 
-                d.line.transport_mode === 'TRAIN'
-            );
+            const d = await r.json();
+            log("Data mottagen. Totalt " + (d.departures ? d.departures.length : 0) + " rader.");
 
-            if(filtered.length === 0) {
-                document.getElementById('board').innerHTML = "<p>Hittade inga bussar/tåg för denna hållplats.</p>";
+            // Filtrera bort SHIP
+            const filter = (d.departures || []).filter(x => x.line.transport_mode !== 'SHIP');
+            log("Efter filter (bort med färjor): " + filter.length + " rader kvar.");
+
+            if(filter.length === 0) {
+                document.getElementById('tavla').innerHTML = "Hittade inga bussar/tåg på detta ID.";
                 return;
             }
 
-            document.getElementById('board').innerHTML = filtered.slice(0,15).map(d => `
-                <div class="dep-row">
-                    <div class="line" style="background:${getCol(d)}">${d.line.designation}</div>
-                    <div class="dest">${d.destination}</div>
-                    <div class="time">${d.display}</div>
+            document.getElementById('tavla').innerHTML = filter.map(x => `
+                <div class="row">
+                    <span class="line">${x.line.designation}</span>
+                    <span style="flex:1">${x.destination}</span>
+                    <span style="color:orange">${x.display}</span>
                 </div>
             `).join('');
 
-        } catch(err) {
-            document.getElementById('board').innerHTML = `<p style="color:red">Fel: ${err.message}</p>`;
-        }
+        } catch(e) { log("HÄMTNINGSFEL: " + e.message); }
     }
-
-    function getCol(d) {
-        const m = d.line.transport_mode;
-        if (m === 'BUS') return '#d4171e';
-        if (m === 'TRAIN') return '#e8830a';
-        if (m === 'METRO') {
-            const n = d.line.designation;
-            if (['10','11'].includes(n)) return '#005b99';
-            if (['13','14'].includes(n)) return '#d4171e';
-            return '#1d7a3a';
-        }
-        return '#444';
-    }
-
-    loadBoard();
-    setInterval(loadBoard, 30000);
 </script>
 </body>
 </html>
