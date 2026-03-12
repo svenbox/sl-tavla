@@ -363,6 +363,7 @@ body {
   flex-direction: column;
   align-items: flex-end;
   gap: 4px;
+  padding-top: 0;
 }
 .big-clock {
   color: white;
@@ -370,6 +371,7 @@ body {
   font-size: 1.6rem;
   font-weight: 700;
   letter-spacing: 0.05em;
+  line-height: 1;
 }
 .back-btn {
   color: rgba(255,255,255,0.85);
@@ -490,7 +492,7 @@ body {
 .dep-dest {
   flex: 1;
   font-family:'SL Gothic Text 2', sans-serif;
-  font-size: 1rem;
+  font-size: 1.15rem;
   font-weight: 600;
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
   letter-spacing: 0.01em;
@@ -688,8 +690,6 @@ body {
     <span class="nav-title">Mina avgångstavlor</span>
     <button class="nav-btn" onclick="showView('create')">＋ Ny tavla</button>
   </div>
-
-    </div>
 
   <div class="boards-container">
     <div class="boards-title">Mina tavlor</div>
