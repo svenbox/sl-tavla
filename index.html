@@ -3,76 +3,123 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SL TEST</title>
+    <title>SL FIX</title>
     <style>
-        body { background: #000; color: #fff; font-family: sans-serif; padding: 20px; }
-        .debug-info { color: #888; font-size: 0.8rem; margin-bottom: 10px; border: 1px solid #333; padding: 5px; }
-        .dep-row { display: flex; padding: 10px; border-bottom: 1px solid #222; align-items: center; }
-        .line { background: #d4171e; padding: 5px 10px; border-radius: 4px; font-weight: bold; margin-right: 15px; min-width: 40px; text-align: center; }
-        .dest { flex: 1; }
+        body { background: #111; color: #fff; font-family: sans-serif; padding: 20px; }
+        .card { background: #222; padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #333; }
+        input { width: 100%; padding: 12px; box-sizing: border-box; background: #000; color: #fff; border: 1px solid #444; }
+        .search-res { padding: 10px; border-bottom: 1px solid #333; cursor: pointer; background: #2a2a2a; margin-top: 5px; }
+        .dep-row { display: flex; padding: 10px; border-bottom: 1px solid #333; align-items: center; }
+        .line { background: #d4171e; color: #fff; padding: 4px 8px; border-radius: 4px; font-weight: bold; margin-right: 15px; }
+        .dest { flex: 1; font-weight: bold; }
         .time { color: #e8830a; font-weight: bold; }
-        .search-res { background: #222; cursor: pointer; padding: 10px; margin-top: 5px; border-radius: 5px; }
+        button { background: #444; color: #fff; border: none; padding: 10px; cursor: pointer; margin-top: 10px; border-radius: 4px; }
     </style>
 </head>
 <body>
 
-    <h2>SL LIVE DEBUG</h2>
-    <input type="text" id="inp" placeholder="Sök station..." style="width:100%; padding:10px;">
-    <div id="results"></div>
-    <hr>
+    <div class="card">
+        <h3>Sök hållplats</h3>
+        <input type="text" id="inp" placeholder="T.ex. Slussen eller Odenplan...">
+        <div id="results"></div>
+        <button onclick="clearAll()" style="background: #900;">Nollställ allt</button>
+    </div>
+
+    <div id="board-title"></div>
     <div id="board"></div>
 
 <script>
     const P = "/proxy?url=";
-    let boards = JSON.parse(localStorage.getItem('sl_boards') || '[]');
+    
+    // Hämta data säkert från localStorage
+    let savedBoard = null;
+    try {
+        const raw = localStorage.getItem('sl_boards_v2');
+        if (raw) savedBoard = JSON.parse(raw);
+    } catch(e) { console.error("Data error", e); }
 
-    async function doSearch(q) {
+    // Sökfunktion
+    document.getElementById('inp').oninput = async (e) => {
+        const q = e.target.value;
         if(q.length < 3) return;
-        const res = await fetch(P + encodeURIComponent("https://transport.integration.sl.se/v1/sites?search-term=" + q));
-        const data = await res.json();
-        document.getElementById('results').innerHTML = data.slice(0,5).map(s => `
-            <div class="search-res" onclick="add('${s.id}', '${s.name}')">${s.name} (ID: ${s.id})</div>
-        `).join('');
-    }
+        try {
+            const res = await fetch(P + encodeURIComponent("https://transport.integration.sl.se/v1/sites?search-term=" + q));
+            const data = await res.json();
+            document.getElementById('results').innerHTML = data.slice(0,8).map(s => `
+                <div class="search-res" onclick="save('${s.id}', '${s.name}')">
+                    <strong>${s.name}</strong> <small>(ID: ${s.id})</small>
+                </div>
+            `).join('');
+        } catch(err) { console.error("Sökfel", err); }
+    };
 
-    document.getElementById('inp').oninput = (e) => doSearch(e.target.value);
-
-    function add(id, name) {
-        boards = [{id, name}]; // Vi sparar bara EN för att testa
-        localStorage.setItem('sl_boards', JSON.stringify(boards));
+    function save(id, name) {
+        localStorage.setItem('sl_boards_v2', JSON.stringify({id, name}));
         location.reload();
     }
 
-    async function load() {
-        if(boards.length === 0) return;
-        const b = boards[0];
-        // VIKTIGT: Vi hämtar MÄNGDER av rader
-        const res = await fetch(P + encodeURIComponent(`https://transport.integration.sl.se/v1/sites/${b.id}/departures?limit=100`));
-        const data = await res.json();
-        
-        const allModes = data.departures.map(d => d.line.transport_mode);
-        const uniqueModes = [...new Set(allModes)];
-        
-        let html = `<div class="debug-info">Hittade: ${uniqueModes.join(', ')} (${data.departures.length} rader)</div>`;
-        
-        // Hård filtrering: ENDAST METRO OCH BUS
-        const filtered = data.departures.filter(d => d.line.transport_mode === 'BUS' || d.line.transport_mode === 'METRO' || d.line.transport_mode === 'TRAIN');
-
-        if(filtered.length === 0) {
-            html += "<p>Hittade INGA bussar/tåg i de 100 senaste raderna för detta ID.</p>";
-        } else {
-            html += filtered.slice(0,15).map(d => `
-                <div class="dep-row">
-                    <div class="line">${d.line.designation}</div>
-                    <div class="dest">${d.destination}</div>
-                    <div class="time">${d.display || 'Tid saknas'}</div>
-                </div>
-            `).join('');
-        }
-        document.getElementById('board').innerHTML = html;
+    function clearAll() {
+        localStorage.clear();
+        location.reload();
     }
 
-    load();
+    async function loadBoard() {
+        if(!savedBoard || !savedBoard.id) {
+            document.getElementById('board').innerHTML = "<p style='color:#666'>Ingen hållplats vald. Sök ovan!</p>";
+            return;
+        }
+
+        document.getElementById('board-title').innerHTML = `<h2>${savedBoard.name}</h2>`;
+        
+        try {
+            // Nu använder vi savedBoard.id som vi VET finns
+            const target = `https://transport.integration.sl.se/v1/sites/${savedBoard.id}/departures?limit=60`;
+            const res = await fetch(P + encodeURIComponent(target));
+            
+            if (!res.ok) throw new Error("Server error " + res.status);
+            
+            const data = await res.json();
+            
+            // FILTRERING: Ta bort färjor (SHIP), visa bara Buss, T-bana och Tåg
+            const filtered = (data.departures || []).filter(d => 
+                d.line.transport_mode === 'BUS' || 
+                d.line.transport_mode === 'METRO' || 
+                d.line.transport_mode === 'TRAIN'
+            );
+
+            if(filtered.length === 0) {
+                document.getElementById('board').innerHTML = "<p>Hittade inga bussar/tåg för denna hållplats.</p>";
+                return;
+            }
+
+            document.getElementById('board').innerHTML = filtered.slice(0,15).map(d => `
+                <div class="dep-row">
+                    <div class="line" style="background:${getCol(d)}">${d.line.designation}</div>
+                    <div class="dest">${d.destination}</div>
+                    <div class="time">${d.display}</div>
+                </div>
+            `).join('');
+
+        } catch(err) {
+            document.getElementById('board').innerHTML = `<p style="color:red">Fel: ${err.message}</p>`;
+        }
+    }
+
+    function getCol(d) {
+        const m = d.line.transport_mode;
+        if (m === 'BUS') return '#d4171e';
+        if (m === 'TRAIN') return '#e8830a';
+        if (m === 'METRO') {
+            const n = d.line.designation;
+            if (['10','11'].includes(n)) return '#005b99';
+            if (['13','14'].includes(n)) return '#d4171e';
+            return '#1d7a3a';
+        }
+        return '#444';
+    }
+
+    loadBoard();
+    setInterval(loadBoard, 30000);
 </script>
 </body>
 </html>
