@@ -2,35 +2,37 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>SL DEBUG MODE</title>
+    <title>SL LIVE FIX</title>
     <style>
-        body { background: #000; color: #0f0; font-family: monospace; padding: 20px; }
-        .log { border: 1px solid #333; padding: 10px; margin-bottom: 20px; font-size: 0.8rem; color: #aaa; }
-        .row { display: flex; background: #111; padding: 10px; border-bottom: 1px solid #222; }
-        .line { color: #fff; background: #d4171e; padding: 2px 6px; margin-right: 10px; }
-        input { width: 100%; padding: 10px; background: #222; color: #fff; border: 1px solid #444; }
-        .res { padding: 10px; cursor: pointer; border-bottom: 1px solid #333; }
+        body { background: #000; color: #eee; font-family: sans-serif; padding: 20px; }
+        .log { background: #111; border: 1px solid #333; padding: 10px; font-family: monospace; font-size: 0.7rem; color: #0f0; margin-bottom: 20px; max-height: 100px; overflow: auto; }
+        input { width: 100%; padding: 15px; background: #222; color: #fff; border: 1px solid #444; font-size: 1.1rem; }
+        .res { background: #2a2a2a; padding: 15px; margin-top: 5px; border-radius: 5px; cursor: pointer; display: flex; justify-content: space-between; }
+        .res:hover { background: #333; border: 1px solid var(--sl-blue); }
+        .type-tag { font-size: 0.7rem; background: #444; padding: 2px 6px; border-radius: 3px; }
+        .row { display: flex; background: #1a1a1a; padding: 12px; border-bottom: 1px solid #333; align-items: center; margin-top: 2px; }
+        .line { background: #d4171e; color: #fff; padding: 3px 8px; border-radius: 4px; font-weight: bold; margin-right: 15px; min-width: 35px; text-align: center; }
+        .dest { flex: 1; font-weight: bold; }
+        .time { color: #e8830a; font-weight: bold; }
     </style>
 </head>
 <body>
 
-    <h2>1. SÖK HÅLLPLATS</h2>
-    <input type="text" id="sok" placeholder="Skriv station...">
+    <h3>1. SÖK STATION</h3>
+    <input type="text" id="sok" placeholder="Skriv t.ex. Slussen...">
     <div id="sok-resultat"></div>
 
-    <h2>2. STATUS LOGG</h2>
-    <div id="logg" class="log">Väntar på input...</div>
+    <div id="logg" class="log">Redo.</div>
 
-    <h2>3. AVGÅNGAR (Endast Buss/Tåg/T-bana)</h2>
+    <h2 id="valda-namn"></h2>
     <div id="tavla"></div>
 
 <script>
     const P = "/proxy?url=";
 
-    // Logga händelser till skärmen så vi ser vad som händer
     function log(msg) {
-        document.getElementById('logg').innerHTML += ">< " + msg + "<br>";
-        console.log(msg);
+        const l = document.getElementById('logg');
+        l.innerHTML = "> " + msg + "<br>" + l.innerHTML;
     }
 
     // SÖK-FUNKTION
@@ -38,54 +40,68 @@
         const v = e.target.value;
         if(v.length < 3) return;
         
-        log("Söker efter: " + v);
+        // Här lägger vi till "stop" för att slippa se 6000 enskilda stolpar
+        const searchUrl = `https://transport.integration.sl.se/v1/sites?search-term=${encodeURIComponent(v)}&content-type=stop&max-results=10`;
+        
         try {
-            const r = await fetch(P + encodeURIComponent("https://transport.integration.sl.se/v1/sites?search-term=" + v));
+            const r = await fetch(P + encodeURIComponent(searchUrl));
             const data = await r.json();
-            log("Sökning klar, hittade " + data.length + " platser");
             
-            document.getElementById('sok-resultat').innerHTML = data.slice(0,5).map(s => `
-                <div class="res" onclick="valj('${s.id}', '${s.name}')">KLICKA HÄR: ${s.name} (ID: ${s.id})</div>
+            log("Hittade " + data.length + " stationer.");
+            
+            document.getElementById('sok-resultat').innerHTML = data.map(s => `
+                <div class="res" onclick="valj('${s.id}', '${s.name}')">
+                    <span>${s.name}</span>
+                    <span class="type-tag">ID: ${s.id}</span>
+                </div>
             `).join('');
         } catch(e) { log("SÖKFEL: " + e.message); }
     };
 
-    // NÄR MAN KLICKAR PÅ EN HÅLLPLATS
     async function valj(id, namn) {
-        log("Valde: " + namn + " ID: " + id);
-        if(!id || id === 'undefined') {
-            log("FEL: ID är undefined!");
-            return;
-        }
+        document.getElementById('valda-namn').innerText = namn;
+        document.getElementById('sok-resultat').innerHTML = "";
+        log("Hämtar avgångar för " + namn + " (" + id + ")...");
         
-        const url = `https://transport.integration.sl.se/v1/sites/${id}/departures?limit=50`;
-        log("Hämtar avgångar från: " + url);
+        // Vi hämtar 80 rader för att vara säkra
+        const depUrl = `https://transport.integration.sl.se/v1/sites/${id}/departures?limit=80`;
         
         try {
-            const r = await fetch(P + encodeURIComponent(url));
-            if(!r.ok) { log("SERVER-FEL: " + r.status); return; }
-            
+            const r = await fetch(P + encodeURIComponent(depUrl));
             const d = await r.json();
-            log("Data mottagen. Totalt " + (d.departures ? d.departures.length : 0) + " rader.");
-
-            // Filtrera bort SHIP
+            
+            // FILTRERA BORT SHIP (Färjor)
             const filter = (d.departures || []).filter(x => x.line.transport_mode !== 'SHIP');
-            log("Efter filter (bort med färjor): " + filter.length + " rader kvar.");
+            
+            log("Hittade " + d.departures.length + " rader, " + filter.length + " är buss/tåg.");
 
             if(filter.length === 0) {
-                document.getElementById('tavla').innerHTML = "Hittade inga bussar/tåg på detta ID.";
+                document.getElementById('tavla').innerHTML = "<p>Inga bussar/tåg hittades på detta ID. Testa en annan träff i sökningen.</p>";
                 return;
             }
 
-            document.getElementById('tavla').innerHTML = filter.map(x => `
+            document.getElementById('tavla').innerHTML = filter.slice(0, 15).map(x => `
                 <div class="row">
-                    <span class="line">${x.line.designation}</span>
-                    <span style="flex:1">${x.destination}</span>
-                    <span style="color:orange">${x.display}</span>
+                    <span class="line" style="background:${getCol(x)}">${x.line.designation}</span>
+                    <span class="dest">${x.destination}</span>
+                    <span class="time">${x.display}</span>
                 </div>
             `).join('');
 
-        } catch(e) { log("HÄMTNINGSFEL: " + e.message); }
+        } catch(e) { log("FEL: " + e.message); }
+    }
+
+    function getCol(x) {
+        const m = x.line.transport_mode;
+        const n = x.line.designation;
+        if(m === 'BUS') return '#d4171e';
+        if(m === 'TRAIN') return '#e8830a';
+        if(m === 'METRO') {
+            if(['10','11'].includes(n)) return '#005b99';
+            if(['13','14'].includes(n)) return '#d4171e';
+            return '#1d7a3a';
+        }
+        return '#444';
     }
 </script>
 </body>
