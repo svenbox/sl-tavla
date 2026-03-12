@@ -3,196 +3,159 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SL Avgångstavla</title>
+    <title>SL Avgångstavla v2</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
-        :root {
-            --sl-blue: #005b99; --sl-red: #d4171e; --sl-green: #1d7a3a; --sl-orange: #e8830a; --bg: #121212; --card-bg: #1e1e1e; --text: #eee;
-        }
+        :root { --sl-blue: #005b99; --sl-red: #d4171e; --sl-green: #1d7a3a; --sl-orange: #e8830a; --bg: #121212; --card-bg: #1e1e1e; --text: #eee; }
         body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); margin:0; padding:0; }
-        .top-bar { background: #000; padding: 15px; display: flex; justify-content: space-between; align-items: center; position: sticky; top:0; z-index:100; border-bottom: 1px solid #333; }
+        .top-bar { background: #000; padding: 15px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #333; position: sticky; top:0; z-index:100; }
         .view { display: none; padding: 15px; max-width: 800px; margin: 0 auto; }
         .view.active { display: block; }
-        .board-card { background: var(--card-bg); border-radius: 12px; margin-bottom: 20px; overflow: hidden; border: 1px solid #333; }
-        .board-header { padding: 15px; display: flex; justify-content: space-between; background: rgba(255,255,255,0.05); }
-        .dep-row { display: flex; align-items: center; padding: 12px 15px; border-bottom: 1px solid #2a2a2a; }
-        .dep-line { width: 42px; height: 26px; color: white; display: flex; align-items: center; justify-content: center; border-radius: 4px; font-weight: 900; font-size: 0.85rem; flex-shrink: 0; }
-        .dep-dest { flex: 1; margin: 0 12px; font-weight: 600; font-size: 1rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .dep-time { font-weight: 900; color: var(--sl-orange); min-width: 65px; text-align: right; }
-        .canceled { text-decoration: line-through; opacity: 0.4; }
-        .btn-primary { background: var(--sl-blue); color: white; border: none; padding: 15px; width: 100%; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 1rem; }
-        input { width: 100%; padding: 15px; margin: 10px 0; border: 1px solid #444; background: #222; color: white; border-radius: 8px; font-size: 1rem; }
-        .search-item { padding: 15px; border-bottom: 1px solid #333; cursor: pointer; background: #252525; margin-bottom: 5px; border-radius: 4px; }
+        .board-card { background: var(--card-bg); border-radius: 12px; margin-bottom: 20px; border: 1px solid #333; overflow: hidden; }
+        .board-header { padding: 12px 15px; background: rgba(255,255,255,0.05); display: flex; justify-content: space-between; }
+        .dep-row { display: flex; align-items: center; padding: 10px 15px; border-bottom: 1px solid #2a2a2a; }
+        .dep-line { width: 40px; height: 24px; color: white; display: flex; align-items: center; justify-content: center; border-radius: 4px; font-weight: 900; font-size: 0.8rem; flex-shrink: 0; }
+        .dep-dest { flex: 1; margin: 0 12px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .dep-time { font-weight: 900; color: var(--sl-orange); min-width: 60px; text-align: right; }
+        .btn-primary { background: var(--sl-blue); color: white; border: none; padding: 15px; width: 100%; border-radius: 8px; font-weight: bold; cursor: pointer; }
+        input { width: 100%; padding: 15px; margin: 10px 0; border: 1px solid #444; background: #222; color: white; border-radius: 8px; box-sizing: border-box; }
+        .search-item { padding: 15px; border-bottom: 1px solid #333; cursor: pointer; }
+        .search-item:hover { background: #252525; }
     </style>
 </head>
 <body>
 
 <div class="top-bar">
-    <h1 onclick="showView('boards')" style="cursor:pointer; font-size:1.2rem; margin:0;">SL LIVE</h1>
-    <button onclick="showView('create')" style="background:var(--sl-blue); border:none; color:white; width:35px; height:35px; border-radius:50%; font-size:1.2rem; cursor:pointer; font-weight:bold;">＋</button>
+    <h1 onclick="showView('boards')" style="cursor:pointer; font-size:1.1rem;">SL LIVE</h1>
+    <button onclick="showView('create')" style="background:var(--sl-blue); border:none; color:white; width:35px; height:35px; border-radius:50%; font-weight:bold; cursor:pointer;">＋</button>
 </div>
 
 <div id="view-boards" class="view active">
     <div id="boards-list"></div>
-    <div id="empty-msg" style="text-align:center; padding:60px; color:#666; display:none;">
-        <p>Inga tavlor sparade.</p>
-        <button class="btn-primary" onclick="showView('create')" style="margin-top:20px; width:auto;">Lägg till hållplats</button>
+    <div id="empty-msg" style="text-align:center; padding:40px; display:none;">
+        <p style="color:#666;">Inga hållplatser tillagda.</p>
+        <button class="btn-primary" onclick="showView('create')" style="width:auto; padding:10px 20px;">Lägg till nu</button>
     </div>
 </div>
 
 <div id="view-create" class="view">
     <div class="board-card" style="padding:20px;">
-        <h2 style="margin-top:0;">Sök hållplats</h2>
-        <input type="text" id="stop-search" placeholder="Sök station (t.ex. Slussen)..." oninput="debounceSearch(this.value)">
+        <h2 style="margin:0 0 10px 0;">Sök station</h2>
+        <p style="font-size:0.8rem; color:#888;">Tips: Sök på "Slussen" eller "Centralen"</p>
+        <input type="text" id="stop-search" placeholder="Skriv stationens namn..." oninput="doSearch(this.value)">
         <div id="search-results"></div>
-        <button class="btn-primary" onclick="showView('boards')" style="background:#444; margin-top:15px;">Avbryt</button>
+        <button class="btn-primary" onclick="showView('boards')" style="background:#444; margin-top:10px;">Tillbaka</button>
     </div>
 </div>
 
 <script>
     const P = '/proxy?url=';
     let boards = JSON.parse(localStorage.getItem('sl_boards') || '[]');
-    let searchTimer;
+    let timer;
 
     function showView(id) {
         document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
         document.getElementById('view-' + id).classList.add('active');
-        if(id === 'boards') renderAllBoards();
+        if(id === 'boards') renderBoards();
     }
 
-    // Sökfunktion
-    function debounceSearch(q) {
-        clearTimeout(searchTimer);
-        searchTimer = setTimeout(() => executeSearch(q), 400);
-    }
-
-async function executeSearch(q) {
-    if(q.length < 3) return;
-    
-    // Vi lägger till filter för att få med alla transporttyper i sökningen
-    const url = `https://transport.integration.sl.se/v1/sites?search-term=${encodeURIComponent(q)}&max-results=15`;
-    
-    try {
-        const res = await fetch(P + encodeURIComponent(url));
-        const data = await res.json();
-        const resDiv = document.getElementById('search-results');
-        
-        if (!data || data.length === 0) {
-            resDiv.innerHTML = '<div class="search-item">Inga träffar...</div>';
-            return;
-        }
-
-        resDiv.innerHTML = data.map(s => {
-            // Vi försöker identifiera vad det är för typ av station
-            return `
-                <div class="search-item" onclick="addBoard('${s.id}', '${s.name.replace(/'/g, "\\'")}')">
-                    <div style="display:flex; justify-content:space-between; align-items:center;">
-                        <span>${s.name}</span>
-                        <span style="font-size:0.7rem; background:#444; padding:2px 5px; border-radius:3px; color:#aaa;">ID: ${s.id}</span>
+    function doSearch(q) {
+        clearTimeout(timer);
+        if(q.length < 3) return;
+        timer = setTimeout(async () => {
+            // Vi söker brett och inkluderar ALLA typer av platser
+            const url = `https://transport.integration.sl.se/v1/sites?search-term=${encodeURIComponent(q)}`;
+            try {
+                const res = await fetch(P + encodeURIComponent(url));
+                const data = await res.json();
+                const resDiv = document.getElementById('search-results');
+                
+                // Vi filtrerar INTE i sökningen, vi vill se allt som kommer tillbaka
+                resDiv.innerHTML = data.slice(0, 10).map(s => `
+                    <div class="search-item" onclick="addBoard('${s.id}', '${s.name.replace(/'/g, "")}')">
+                        <strong>${s.name}</strong>
                     </div>
-                </div>
-            `;
-        }).join('');
-    } catch(e) { 
-        console.error("Sökfel", e); 
-        document.getElementById('search-results').innerHTML = '<div class="search-item">Kunde inte söka. Kontrollera nätverket.</div>';
+                `).join('');
+            } catch(e) { console.error("Sökfel", e); }
+        }, 400);
     }
-}
+
+    function addBoard(id, name) {
+        if(!boards.find(b => b.stopId === id)) {
+            boards.push({stopId: id, name: name});
+            localStorage.setItem('sl_boards', JSON.stringify(boards));
+        }
+        showView('boards');
+    }
 
     function deleteBoard(idx) {
-        if(confirm("Ta bort tavlan?")) {
-            boards.splice(idx, 1);
-            localStorage.setItem('sl_boards', JSON.stringify(boards));
-            renderAllBoards();
-        }
+        boards.splice(idx, 1);
+        localStorage.setItem('sl_boards', JSON.stringify(boards));
+        renderBoards();
     }
 
-    // Rendering av tavlor
-    async function renderAllBoards() {
+    async function renderBoards() {
         const list = document.getElementById('boards-list');
-        const empty = document.getElementById('empty-msg');
         list.innerHTML = '';
-        
-        if(boards.length === 0) { empty.style.display = 'block'; return; }
-        empty.style.display = 'none';
+        if(boards.length === 0) { document.getElementById('empty-msg').style.display='block'; return; }
+        document.getElementById('empty-msg').style.display='none';
 
         boards.forEach((b, idx) => {
             const card = document.createElement('div');
             card.className = 'board-card';
-            card.innerHTML = `
-                <div class="board-header">
-                    <strong>${b.name}</strong>
-                    <span onclick="deleteBoard(${idx})" style="cursor:pointer; opacity:0.5;">✕</span>
-                </div>
-                <div id="deps-${idx}">Laddar...</div>
-            `;
+            card.innerHTML = `<div class="board-header"><span>${b.name}</span><span onclick="deleteBoard(${idx})" style="cursor:pointer; opacity:0.5;">✕</span></div><div id="deps-${idx}"></div>`;
             list.appendChild(card);
-            loadBoardData(b.stopId, idx);
+            updateDeps(b.stopId, idx);
         });
     }
 
-async function loadBoardData(id, idx) {
-    // Vi hämtar 100 avgångar för att garanterat hitta bussar/tåg bakom alla färjor
-    const url = `https://transport.integration.sl.se/v1/sites/${id}/departures?limit=100`;
-    try {
-        const res = await fetch(P + encodeURIComponent(url));
-        const data = await res.json();
-        const div = document.getElementById(`deps-${idx}`);
-        
-        if(!data.departures || data.departures.length === 0) {
-            div.innerHTML = '<p style="padding:15px; color:#666;">Inga avgångar hittades.</p>';
-            return;
-        }
+    async function updateDeps(id, idx) {
+        // Vi hämtar MÅNGA avgångar för att inte missa t-banan
+        const url = `https://transport.integration.sl.se/v1/sites/${id}/departures?limit=80`;
+        try {
+            const res = await fetch(P + encodeURIComponent(url));
+            const data = await res.json();
+            const div = document.getElementById(`deps-${idx}`);
+            
+            // FILTRERING: Ta bort färjor (SHIP) och sortera på tid
+            const clean = (data.departures || [])
+                .filter(d => d.line.transport_mode !== 'SHIP')
+                .slice(0, 12);
 
-        // --- HÅRD FILTRERING ---
-        // Vi tar BORT allt som är färja (SHIP)
-        const onlyLandTransport = data.departures.filter(d => d.line.transport_mode !== 'SHIP');
+            if(clean.length === 0) {
+                div.innerHTML = '<p style="padding:15px; color:#666;">Inga bussar eller tåg hittades här.</p>';
+                return;
+            }
 
-        if (onlyLandTransport.length === 0) {
-            div.innerHTML = '<p style="padding:15px; color:#888;">Hittade bara färjor på denna plats. Prova att söka en annan hållplatsdel.</p>';
-            return;
-        }
-
-        // Rendera de 12 första (som nu garanterat inte är färjor)
-        div.innerHTML = onlyLandTransport.slice(0, 12).map(d => {
-            const color = getLineColor(d.line.designation, d.line.transport_mode);
-            const isCanceled = d.state === 'CANCELLED';
-            return `
-                <div class="dep-row">
-                    <div class="dep-line" style="background:${color}">${d.line.designation}</div>
-                    <div class="dep-dest ${isCanceled ? 'canceled' : ''}">${d.destination} ${d.deviations?.length ? '⚠️' : ''}</div>
-                    <div class="dep-time">${isCanceled ? 'Inställd' : formatTime(d.expected || d.scheduled)}</div>
-                </div>
-            `;
-        }).join('');
-    } catch(e) { 
-        console.error(e);
-        document.getElementById(`deps-${idx}`).innerHTML = '<p style="padding:15px; color:red;">Kunde inte ladda data.</p>';
-    }
-}
-
-    function getLineColor(line, mode) {
-        if (mode === 'METRO') {
-            if (['10','11'].includes(line)) return '#005b99';
-            if (['13','14'].includes(line)) return '#d4171e';
-            if (['17','18','19'].includes(line)) return '#1d7a3a';
-        }
-        if (mode === 'BUS') return '#d4171e';
-        if (mode === 'TRAIN') return '#e8830a';
-        if (mode === 'SHIP') return '#00b4e5';
-        return '#444';
+            div.innerHTML = clean.map(d => {
+                let color = '#444';
+                const m = d.line.transport_mode;
+                const n = d.line.designation;
+                if(m === 'BUS') color = '#d4171e';
+                if(m === 'TRAIN') color = '#e8830a';
+                if(m === 'METRO') {
+                    if(['10','11'].includes(n)) color = '#005b99';
+                    else if(['13','14'].includes(n)) color = '#d4171e';
+                    else color = '#1d7a3a';
+                }
+                return `
+                    <div class="dep-row">
+                        <div class="dep-line" style="background:${color}">${n}</div>
+                        <div class="dep-dest">${d.destination}</div>
+                        <div class="dep-time">${formatTime(d.expected || d.scheduled)}</div>
+                    </div>
+                `;
+            }).join('');
+        } catch(e) { console.error(e); }
     }
 
     function formatTime(iso) {
         const diff = Math.round((new Date(iso) - new Date()) / 60000);
-        if (diff <= 0) return 'Nu';
-        if (diff > 25) return new Date(iso).getHours().toString().padStart(2,'0') + ':' + new Date(iso).getMinutes().toString().padStart(2,'0');
-        return diff + ' min';
+        return diff <= 0 ? 'Nu' : diff + ' min';
     }
 
-    // Init
-    showView('boards');
-    setInterval(renderAllBoards, 30000);
+    renderBoards();
+    setInterval(renderBoards, 30000);
 </script>
 </body>
 </html>
