@@ -66,28 +66,38 @@
         searchTimer = setTimeout(() => executeSearch(q), 400);
     }
 
-    async function executeSearch(q) {
-        if(q.length < 3) return;
-        const url = `https://transport.integration.sl.se/v1/sites?search-term=${encodeURIComponent(q)}&max-results=8`;
-        try {
-            const res = await fetch(P + encodeURIComponent(url));
-            const data = await res.json();
-            const resDiv = document.getElementById('search-results');
-            resDiv.innerHTML = data.map(s => `
-                <div class="search-item" onclick="addBoard('${s.id}', '${s.name}')">
-                    ${s.name} <small style="color:#888; float:right;">${s.id}</small>
-                </div>
-            `).join('');
-        } catch(e) { console.error("Sökfel", e); }
-    }
-
-    function addBoard(id, name) {
-        if(!boards.find(b => b.stopId === id)) {
-            boards.push({stopId: id, name: name});
-            localStorage.setItem('sl_boards', JSON.stringify(boards));
+async function executeSearch(q) {
+    if(q.length < 3) return;
+    
+    // Vi lägger till filter för att få med alla transporttyper i sökningen
+    const url = `https://transport.integration.sl.se/v1/sites?search-term=${encodeURIComponent(q)}&max-results=15`;
+    
+    try {
+        const res = await fetch(P + encodeURIComponent(url));
+        const data = await res.json();
+        const resDiv = document.getElementById('search-results');
+        
+        if (!data || data.length === 0) {
+            resDiv.innerHTML = '<div class="search-item">Inga träffar...</div>';
+            return;
         }
-        showView('boards');
+
+        resDiv.innerHTML = data.map(s => {
+            // Vi försöker identifiera vad det är för typ av station
+            return `
+                <div class="search-item" onclick="addBoard('${s.id}', '${s.name.replace(/'/g, "\\'")}')">
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <span>${s.name}</span>
+                        <span style="font-size:0.7rem; background:#444; padding:2px 5px; border-radius:3px; color:#aaa;">ID: ${s.id}</span>
+                    </div>
+                </div>
+            `;
+        }).join('');
+    } catch(e) { 
+        console.error("Sökfel", e); 
+        document.getElementById('search-results').innerHTML = '<div class="search-item">Kunde inte söka. Kontrollera nätverket.</div>';
     }
+}
 
     function deleteBoard(idx) {
         if(confirm("Ta bort tavlan?")) {
