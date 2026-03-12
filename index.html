@@ -5,12 +5,13 @@
     <title>SL LIVE FIX</title>
     <style>
         body { background: #000; color: #eee; font-family: sans-serif; padding: 20px; }
-        .log { background: #111; border: 1px solid #333; padding: 10px; font-family: monospace; font-size: 0.7rem; color: #0f0; margin-bottom: 20px; max-height: 100px; overflow: auto; }
-        input { width: 100%; padding: 15px; background: #222; color: #fff; border: 1px solid #444; font-size: 1.1rem; }
-        .res { background: #2a2a2a; padding: 15px; margin-top: 5px; border-radius: 5px; cursor: pointer; display: flex; justify-content: space-between; }
-        .res:hover { background: #333; border: 1px solid var(--sl-blue); }
-        .type-tag { font-size: 0.7rem; background: #444; padding: 2px 6px; border-radius: 3px; }
-        .row { display: flex; background: #1a1a1a; padding: 12px; border-bottom: 1px solid #333; align-items: center; margin-top: 2px; }
+        .log { background: #111; border: 1px solid #333; padding: 10px; font-family: monospace; font-size: 0.7rem; color: #0f0; margin-bottom: 20px; max-height: 80px; overflow: auto; }
+        input { width: 100%; padding: 15px; background: #222; color: #fff; border: 1px solid #444; font-size: 1.1rem; border-radius: 8px; }
+        .res { background: #2a2a2a; padding: 15px; margin-top: 8px; border-radius: 8px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; border: 1px solid #333; }
+        .res:hover { border-color: #005b99; background: #333; }
+        .modes-info { font-size: 0.75rem; color: #aaa; display: flex; gap: 5px; }
+        .mode-badge { background: #444; padding: 2px 6px; border-radius: 4px; color: #fff; }
+        .row { display: flex; background: #1a1a1a; padding: 12px; border-bottom: 1px solid #333; align-items: center; }
         .line { background: #d4171e; color: #fff; padding: 3px 8px; border-radius: 4px; font-weight: bold; margin-right: 15px; min-width: 35px; text-align: center; }
         .dest { flex: 1; font-weight: bold; }
         .time { color: #e8830a; font-weight: bold; }
@@ -18,7 +19,7 @@
 </head>
 <body>
 
-    <h3>1. SÖK STATION</h3>
+    <h3>SÖK STATION (Välj rätt ikon)</h3>
     <input type="text" id="sok" placeholder="Skriv t.ex. Slussen...">
     <div id="sok-resultat"></div>
 
@@ -35,52 +36,52 @@
         l.innerHTML = "> " + msg + "<br>" + l.innerHTML;
     }
 
-    // SÖK-FUNKTION
     document.getElementById('sok').oninput = async (e) => {
         const v = e.target.value;
         if(v.length < 3) return;
         
-        // Här lägger vi till "stop" för att slippa se 6000 enskilda stolpar
+        // Vi hämtar stationer och ber om information om vilka transportslag som finns där
         const searchUrl = `https://transport.integration.sl.se/v1/sites?search-term=${encodeURIComponent(v)}&content-type=stop&max-results=10`;
         
         try {
             const r = await fetch(P + encodeURIComponent(searchUrl));
             const data = await r.json();
             
-            log("Hittade " + data.length + " stationer.");
-            
-            document.getElementById('sok-resultat').innerHTML = data.map(s => `
-                <div class="res" onclick="valj('${s.id}', '${s.name}')">
-                    <span>${s.name}</span>
-                    <span class="type-tag">ID: ${s.id}</span>
-                </div>
-            `).join('');
-        } catch(e) { log("SÖKFEL: " + e.message); }
+            document.getElementById('sok-resultat').innerHTML = data.map(s => {
+                // Skapa små etiketter för de transportslag stationen har
+                const modes = (s.transport_modes || []).map(m => 
+                    `<span class="mode-badge">${translateMode(m)}</span>`
+                ).join('');
+
+                return `
+                    <div class="res" onclick="valj('${s.id}', '${s.name}')">
+                        <span>${s.name}</span>
+                        <div class="modes-info">${modes}</div>
+                    </div>
+                `;
+            }).join('');
+        } catch(e) { log("SÖKFEL"); }
     };
+
+    function translateMode(m) {
+        const map = { 'METRO': 'T-bana', 'BUS': 'Buss', 'TRAIN': 'Tåg', 'TRAM': 'Spårvagn', 'SHIP': 'Båt' };
+        return map[m] || m;
+    }
 
     async function valj(id, namn) {
         document.getElementById('valda-namn').innerText = namn;
         document.getElementById('sok-resultat').innerHTML = "";
-        log("Hämtar avgångar för " + namn + " (" + id + ")...");
         
-        // Vi hämtar 80 rader för att vara säkra
-        const depUrl = `https://transport.integration.sl.se/v1/sites/${id}/departures?limit=80`;
+        const depUrl = `https://transport.integration.sl.se/v1/sites/${id}/departures?limit=60`;
         
         try {
             const r = await fetch(P + encodeURIComponent(depUrl));
             const d = await r.json();
             
-            // FILTRERA BORT SHIP (Färjor)
+            // Vi visar allt utom färjor (så vi ser T-bana, Buss, Tåg)
             const filter = (d.departures || []).filter(x => x.line.transport_mode !== 'SHIP');
-            
-            log("Hittade " + d.departures.length + " rader, " + filter.length + " är buss/tåg.");
 
-            if(filter.length === 0) {
-                document.getElementById('tavla').innerHTML = "<p>Inga bussar/tåg hittades på detta ID. Testa en annan träff i sökningen.</p>";
-                return;
-            }
-
-            document.getElementById('tavla').innerHTML = filter.slice(0, 15).map(x => `
+            document.getElementById('tavla').innerHTML = filter.map(x => `
                 <div class="row">
                     <span class="line" style="background:${getCol(x)}">${x.line.designation}</span>
                     <span class="dest">${x.destination}</span>
@@ -88,7 +89,7 @@
                 </div>
             `).join('');
 
-        } catch(e) { log("FEL: " + e.message); }
+        } catch(e) { log("Hämtningsfel"); }
     }
 
     function getCol(x) {
