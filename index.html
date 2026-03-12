@@ -476,7 +476,7 @@ body {
 .dep-mode-circle.ferry { color: #0077b6; border-color: #0077b6; }
 
 .dep-badge {
-  border-radius: 8px;
+  border-radius: 2px;
   padding: 4px 12px;
   font-family:'SL Gothic Text 2', sans-serif;
   font-size: 1.15rem;
@@ -1114,6 +1114,18 @@ const METRO_LINE_COLOR = {
   13:'#d4171e', 14:'#d4171e',   // Röda linjen
   17:'#1d7a3a', 18:'#1d7a3a', 19:'#1d7a3a',  // Gröna linjen
 };
+function lineBadgeStyle(line, mode) {
+  if (mode==='METRO'||mode==='SUBWAY') {
+    const n = parseInt(line);
+    const color = METRO_LINE_COLOR[n] || '#1d7a3a';
+    return `background:${color};border-radius:8px`;
+  }
+  if(mode==='BUS')   return 'background:#1a1a1a;border-radius:2px';
+  if(mode==='TRAM')  return 'background:#c0392b;border-radius:50px';
+  if(mode==='TRAIN') return 'background:#8B4513;border-radius:2px';
+  if(mode==='FERRY') return 'background:#0077b6;border-radius:8px';
+  return 'background:#444;border-radius:4px';
+}
 function lineColor(line, mode) {
   if (mode==='METRO'||mode==='SUBWAY') {
     const n = parseInt(line);
@@ -1171,7 +1183,7 @@ function renderDetailDeps() {
 
     return `<div class="dep-row" style="animation-delay:${i*18}ms">
       ${modeIconSVG(d.mode)}
-      <div class="dep-badge" style="background:${lineColor(d.line,d.mode)}">${d.line}</div>
+      <div class="dep-badge" style="${lineBadgeStyle(d.line,d.mode)}">${d.line}</div>
       <div class="dep-dest${d.canceled?' canceled':''}">${d.dest}</div>
       ${d.platform?`<div class="dep-platform">Läge ${d.platform}</div>`:''}
       <div class="dep-time-col">${timeHtml}${clockHtml}</div>
