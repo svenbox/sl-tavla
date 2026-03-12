@@ -50,112 +50,81 @@ input { width: 100%; padding: 15px; margin: 10px 0; border: 1px solid #444; back
 </div>
 
 <script>
-const P = '/proxy?url=';
-let boards = JSON.parse(localStorage.getItem('sl_boards') || '[]');
+    // 1. Konfiguration - Se till att P används överallt
+    const P = "/proxy?url=";
 
-function showView(id) {
-  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-  document.getElementById('view-' + id).classList.add('active');
-  if(id === 'boards') renderBoards();
-}
-
-async function searchStop(q) {
-  if(q.length < 3) return;
-  const url = `https://transport.integration.sl.se/v1/sites?search-term=${encodeURIComponent(q)}&max-results=8`;
-  try {
-    const res = await fetch(P + encodeURIComponent(url));
-    const data = await res.json();
-    const resDiv = document.getElementById('search-results');
-    resDiv.innerHTML = data.map(s => `<div class="search-item" onclick="addBoard('${s.id}', '${s.name}')">${s.name} <small style="color:#888; float:right;">${s.id}</small></div>`).join('');
-  } catch(e) { console.error(e); }
-}
-
-function addBoard(id, name) {
-  if(!boards.find(b => b.stopId === id)) {
-    boards.push({stopId: id, name: name});
-    localStorage.setItem('sl_boards', JSON.stringify(boards));
-  }
-  showView('boards');
-}
-
-function deleteBoard(idx) {
-  if(confirm("Ta bort " + boards[idx].name + "?")) {
-    boards.splice(idx, 1);
-    localStorage.setItem('sl_boards', JSON.stringify(boards));
-    renderBoards();
-  }
-}
-
-async function renderBoards() {
-  const list = document.getElementById('boards-list');
-  const empty = document.getElementById('empty-msg');
-  list.innerHTML = '';
-  
-  if(boards.length === 0) { empty.style.display = 'block'; return; }
-  empty.style.display = 'none';
-
-  boards.forEach((b, idx) => {
-    const card = document.createElement('div');
-    card.className = 'board-card';
-    card.innerHTML = `<div class="board-header"><strong>${b.name}</strong><span onclick="deleteBoard(${idx})" style="cursor:pointer; opacity:0.5;">✕</span></div><div id="deps-${idx}"></div>`;
-    list.appendChild(card);
-    loadDeps(b.stopId, idx);
-  });
-}
-
-function getLineColor(line, mode) {
-  if (mode === 'METRO') {
-    if (['10','11'].includes(line)) return '#005b99'; // Blå
-    if (['13','14'].includes(line)) return '#d4171e'; // Röd
-    if (['17','18','19'].includes(line)) return '#1d7a3a'; // Grön
-  }
-  if (mode === 'BUS') return '#d4171e';
-  if (mode === 'TRAM') return '#666';
-  if (mode === 'TRAIN') return '#e8830a';
-  if (mode === 'SHIP') return '#00b4e5';
-  return '#444';
-}
-
-async function loadDeps(id, idx) {
-  const url = `https://transport.integration.sl.se/v1/sites/${id}/departures?limit=15`;
-  try {
-    const res = await fetch(P + encodeURIComponent(url));
-    const data = await res.json();
-    const div = document.getElementById(`deps-${idx}`);
-    
-    if(!data.departures || data.departures.length === 0) {
-      div.innerHTML = '<p style="padding:15px; color:#666;">Inga avgångar just nu.</p>';
-      return;
+    // 2. Funktion för att hämta data
+    async function fetchSLDeps(siteId) {
+        // Vi lägger till ?limit=20 för att vara säkra på att få mer än bara färjor
+        const targetUrl = `https://transport.integration.sl.se/v1/sites/${siteId}/departures?limit=20`;
+        try {
+            const r = await fetch(P + encodeURIComponent(targetUrl));
+            const d = await r.json();
+            
+            // Vi mappar datat och ser till att vi har transport_mode för färgkodning
+            return (d.departures || []).map(x => ({
+                line: x.line?.designation || '?',
+                mode: x.line?.transport_mode, // Sparar om det är BUS, METRO, TRAIN etc.
+                dest: x.destination || '–',
+                time: x.expected || x.scheduled,
+                canceled: x.state === 'CANCELLED',
+                deviations: x.deviations || []
+            }));
+        } catch (e) {
+            console.error("Fel vid hämtning:", e);
+            return [];
+        }
     }
 
-    div.innerHTML = data.departures.slice(0, 10).map(d => {
-      const color = getLineColor(d.line.designation, d.line.transport_mode);
-      const isCanceled = d.state === 'CANCELLED';
-      return `
-        <div class="dep-row">
-          <div class="dep-line" style="background:${color}">${d.line.designation}</div>
-          <div class="dep-dest ${isCanceled ? 'canceled' : ''}">${d.destination} ${d.deviations?.length ? '⚠️' : ''}</div>
-          <div class="dep-time">${isCanceled ? 'Inställd' : formatTime(d.expected || d.scheduled)}</div>
-        </div>
-      `;
-    }).join('');
-  } catch(e) { 
-    document.getElementById(`deps-${idx}`).innerHTML = '<p style="padding:15px; color:red;">Kunde inte hämta data.</p>';
-  }
-}
+    // 3. Funktion för att rita ut raderna med rätt färger
+    function renderRow(d) {
+        const hasDev = d.deviations && d.deviations.length > 0;
+        const devText = hasDev ? d.deviations.map(dv => dv.consequence).join('. ') : '';
+        
+        // Bestäm färg baserat på transportslag
+        let lineColor = "#005b99"; // Standard blå
+        if (d.mode === 'BUS') lineColor = "#d4171e"; // Bussar är röda
+        if (d.mode === 'TRAIN') lineColor = "#e8830a"; // Pendeltåg orange
+        if (d.mode === 'METRO') {
+            if (['17','18','19'].includes(d.line)) lineColor = "#1d7a3a"; // Grön linje
+            if (['13','14'].includes(d.line)) lineColor = "#d4171e"; // Röd linje
+        }
 
-function formatTime(iso) {
-  const diff = Math.round((new Date(iso) - new Date()) / 60000);
-  if (diff <= 0) return 'Nu';
-  if (diff > 30) {
-    const d = new Date(iso);
-    return d.getHours().toString().padStart(2,'0') + ':' + d.getMinutes().toString().padStart(2,'0');
-  }
-  return diff + ' min';
-}
+        return `
+            <div class="dep-row">
+                <div class="dep-line" style="background-color: ${lineColor}">${d.line}</div>
+                <div class="dep-dest ${d.canceled ? 'canceled' : ''}">
+                    ${d.dest} ${hasDev ? `<span class="dev-icon" title="${devText}">⚠️</span>` : ''}
+                </div>
+                <div class="dep-time">${d.canceled ? 'Inställd' : formatTime(d.time)}</div>
+            </div>
+        `;
+    }
 
-setInterval(renderBoards, 30000); // Auto-uppdatera var 30:e sekund
-showView('boards');
+    function formatTime(iso) {
+        const diff = Math.round((new Date(iso) - new Date()) / 60000);
+        if (diff <= 0) return 'Nu';
+        if (diff > 30) return new Date(iso).toLocaleTimeString('sv-SE', {hour: '2-digit', minute:'2-digit'});
+        return diff + ' min';
+    }
+
+    // 4. Starta appen och ladda en hållplats (t.ex. Slussen = 9192 eller Tekniska = 9204)
+    async function init() {
+        const container = document.getElementById('board-container');
+        // Ändra '9192' till det SiteID du vill visa som standard
+        const deps = await fetchSLDeps('9192'); 
+        
+        if (deps.length === 0) {
+            container.innerHTML = "<p>Inga avgångar hittades.</p>";
+            return;
+        }
+
+        container.innerHTML = deps.map(d => renderRow(d)).join('');
+    }
+
+    // Kör direkt och sedan var 30:e sekund
+    init();
+    setInterval(init, 30000);
 </script>
 </body>
 </html>
