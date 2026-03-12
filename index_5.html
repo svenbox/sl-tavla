@@ -1,0 +1,1320 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Avgångstavla">
+<meta name="theme-color" content="#005b99">
+<link rel="apple-touch-icon" href="/icon.png">
+<link rel="manifest" href="/manifest.json">
+<title>Avgångstavla</title>
+<style>
+@font-face {
+  font-family:'SL Gothic Text 2';
+  src: url('https://afde-slweb-prod-axgjc2gedaepaveg.z01.azurefd.net/styleguide/8.3.0/staticcss/slgothictext2-regular.woff2') format('woff2');
+  font-weight: 400; font-style: normal;
+}
+@font-face {
+  font-family:'SL Gothic Text 2';
+  src: url('https://afde-slweb-prod-axgjc2gedaepaveg.z01.azurefd.net/styleguide/8.3.0/staticcss/slgothictext2-regularitalic.woff2') format('woff2');
+  font-weight: 400; font-style: italic;
+}
+@font-face {
+  font-family:'SL Gothic Text 2';
+  src: url('https://afde-slweb-prod-axgjc2gedaepaveg.z01.azurefd.net/styleguide/8.3.0/staticcss/slgothictext2-medium.woff2') format('woff2');
+  font-weight: 500; font-style: normal;
+}
+@font-face {
+  font-family:'SL Gothic Text 2';
+  src: url('https://afde-slweb-prod-axgjc2gedaepaveg.z01.azurefd.net/styleguide/8.3.0/staticcss/slgothictext2-mediumitalic.woff2') format('woff2');
+  font-weight: 500; font-style: italic;
+}
+@font-face {
+  font-family:'SL Gothic Text 2';
+  src: url('https://afde-slweb-prod-axgjc2gedaepaveg.z01.azurefd.net/styleguide/8.3.0/staticcss/slgothictext2-bold.woff2') format('woff2');
+  font-weight: 700; font-style: normal;
+}
+</style>
+<style>
+:root {
+  --sl-blue:     #005b99;
+  --sl-blue-bg:  #e8f1f8;
+  --sl-red:      #d4171e;
+  --sl-orange:   #e8830a;
+  --metro-green: #1d7a3a;
+  --metro-red:   #d4171e;
+  --metro-blue:  #005b99;
+  --bus-blue:    #005b99;
+  --border:      #d8d8d8;
+  --text:        #111;
+  --text2:       #444;
+  --text3:       #888;
+  --bg:          #efefef;
+  --panel-bg:    #1a1a1a;
+  --panel-text:  #ffffff;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:'SL Gothic Text 2', system-ui, sans-serif; background:var(--bg); color:var(--text); min-height:100vh; }
+
+
+/* ── TRANSPORT MODE ICONS (SVG, no emoji) ── */
+.mode-icon-wrap {
+  width: 28px; height: 28px;
+  border-radius: 3px;
+  flex-shrink: 0;
+  overflow: hidden;
+  display: flex; align-items: center; justify-content: center;
+}
+.mode-icon-wrap svg { width: 28px; height: 28px; }
+.mode-icon-wrap.sm { width: 22px; height: 22px; }
+.mode-icon-wrap.sm svg { width: 22px; height: 22px; }
+.mode-icon-wrap.lg { width: 40px; height: 40px; }
+.mode-icon-wrap.lg svg { width: 40px; height: 40px; }
+
+/* ── VIEWS ── */
+.view { display:none !important; }
+.view.active {
+  display:block !important;
+  min-height:100vh;
+  position:relative;
+  z-index:1;
+  background:var(--bg);
+}
+/* Prevent any scroll bleed-through on iOS */
+#view-detail.active, #view-create.active {
+  position:fixed;
+  top:0; left:0; right:0; bottom:0;
+  overflow-y:auto;
+  -webkit-overflow-scrolling:touch;
+  z-index:10;
+  background:var(--bg);
+}
+
+/* ── TOP NAV ── */
+.top-nav {
+  background: var(--sl-blue);
+  height: 52px;
+  display: flex;
+  align-items: center;
+  padding: 0 16px;
+  padding-left: max(16px, env(safe-area-inset-left));
+  padding-right: max(16px, env(safe-area-inset-right));
+  gap: 12px;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+}
+/* Status bar area for PWA fullscreen on iPhone */
+.top-nav-spacer {
+  background: var(--sl-blue);
+  height: env(safe-area-inset-top);
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 51;
+}
+body {
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
+}
+.sl-circle {
+  width: 34px; height: 34px;
+  border: 2.5px solid white;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px; font-weight: 900;
+  color: white; flex-shrink: 0;
+}
+.nav-title { color:white; font-weight:700; font-size:1rem; flex:1; }
+.nav-btn {
+  background: rgba(255,255,255,0.18);
+  border: 1px solid rgba(255,255,255,0.3);
+  color: white;
+  border-radius: 6px;
+  padding: 6px 12px;
+  font-family:'SL Gothic Text 2', sans-serif;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+  display: flex; align-items: center; gap: 5px;
+}
+.nav-btn:hover { background: rgba(255,255,255,0.28); }
+.nav-btn.active-view { background: white; color: var(--sl-blue); }
+
+/* ── BOARDS LIST VIEW ── */
+.boards-container {
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 20px 16px 40px;
+}
+.boards-title {
+  font-family:'SL Gothic Text 2', sans-serif;
+  font-size: 1.8rem;
+  font-weight: 700;
+  margin-bottom: 6px;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+.boards-sub { font-size: 0.85rem; color: var(--text3); margin-bottom: 20px; }
+
+.boards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 16px;
+}
+
+/* ── SL STOP SIGN CARD ── */
+.sign-card {
+  background: white;
+  border-radius: 4px;
+  overflow: hidden;
+  box-shadow: 0 3px 12px rgba(0,0,0,0.18), inset 0 0 0 3px rgba(255,255,255,0.9);
+  border: 2px solid #bbb;
+  cursor: pointer;
+  transition: box-shadow 0.15s, transform 0.15s;
+  position: relative;
+}
+.sign-card:hover { box-shadow: 0 8px 24px rgba(0,0,0,0.22); transform: translateY(-2px); }
+
+/* Top stripe – mimics real SL sign */
+.sign-stripe {
+  padding: 6px 10px 6px 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border-bottom: 3px solid rgba(0,0,0,0.15);
+}
+.sign-stripe.blue   { background: var(--sl-blue); }
+.sign-stripe.red    { background: var(--sl-red); }
+.sign-stripe.green  { background: var(--metro-green); }
+.sign-stripe.orange { background: var(--sl-orange); }
+.sign-stripe.dark   { background: #333; }
+
+.sign-mode-icon {
+  width: 30px; height: 30px;
+  border-radius: 3px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+.sign-mode-icon .mode-icon-wrap { width: 30px; height: 30px; }
+.sign-mode-icon .mode-icon-wrap svg { width: 30px; height: 30px; }
+.sign-stop-name {
+  color: white;
+  font-family:'SL Gothic Text 2', sans-serif;
+  font-size: 1.25rem;
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: 0.01em;
+  text-transform: uppercase;
+}
+.sign-board-name {
+  color: rgba(255,255,255,0.85);
+  font-family:'SL Gothic Text 2', sans-serif;
+  font-size: 0.75rem;
+  font-weight: 400;
+  margin-top: 1px;
+  letter-spacing: 0.02em;
+}
+
+/* Lines list in card body */
+.sign-lines {
+  padding: 8px 14px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  min-height: 36px;
+  align-items: center;
+}
+.sign-line-row {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  width: 100%;
+  font-size: 0.82rem;
+}
+.mini-badge {
+  border-radius: 3px;
+  padding: 1px 7px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: white;
+  flex-shrink: 0;
+  min-width: 28px;
+  text-align: center;
+}
+.mini-dest { color: var(--text2); font-size: 0.78rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* Small display panel – real digital display look */
+.sign-panel {
+  background: #111;
+  padding: 6px 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  border-top: 2px solid #000;
+  border-bottom: 1px solid #333;
+}
+.panel-next {
+  color: #ccc;
+  font-family:'SL Gothic Text 2', sans-serif;
+  font-size: 0.75rem;
+  font-weight: 400;
+  letter-spacing: 0.03em;
+  opacity: 0.8;
+}
+.panel-time {
+  color: white;
+  font-family:'SL Gothic Text 2', sans-serif;
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+.sign-card-footer {
+  padding: 6px 14px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.card-footer-label { font-size: 0.68rem; color: var(--text3); }
+.card-delete {
+  background: none; border: none; cursor: pointer;
+  color: var(--text3); font-size: 0.72rem; padding: 2px 6px;
+  border-radius: 4px; font-family:'SL Gothic Text 2', sans-serif;
+  transition: all 0.12s;
+}
+.card-delete:hover { color: var(--sl-red); background: #ffeaea; }
+
+.add-card {
+  background: white;
+  border: 2px dashed var(--border);
+  border-radius: 6px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 20px;
+  cursor: pointer;
+  transition: all 0.15s;
+  color: var(--text3);
+  gap: 8px;
+  min-height: 160px;
+}
+.add-card:hover { border-color: var(--sl-blue); color: var(--sl-blue); background: var(--sl-blue-bg); }
+.add-card-icon { font-size: 2rem; }
+.add-card-label { font-size: 0.85rem; font-weight: 600; }
+
+/* ── BOARD DETAIL VIEW ── */
+.board-detail {
+  max-width: 700px;
+  margin: 0 auto;
+  padding: 0 0 40px;
+}
+
+/* Big SL sign header */
+.big-sign {
+  background: var(--sl-blue);
+  padding: 16px 20px 14px;
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+}
+.big-sign.red   { background: var(--sl-red); }
+.big-sign.green { background: var(--metro-green); }
+
+.big-sign-icon {
+  width: 46px; height: 46px;
+  border-radius: 4px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+.big-sign-icon .mode-icon-wrap { width: 46px; height: 46px; }
+.big-sign-icon .mode-icon-wrap svg { width: 46px; height: 46px; }
+.big-sign-info { flex: 1; }
+.big-sign-stop {
+  color: white;
+  font-family:'SL Gothic Text 2', sans-serif;
+  font-size: 2rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  line-height: 1.05;
+  text-transform: uppercase;
+}
+.big-sign-board {
+  color: rgba(255,255,255,0.85);
+  font-family:'SL Gothic Text 2', sans-serif;
+  font-size: 0.9rem;
+  font-weight: 400;
+  letter-spacing: 0.04em;
+  margin-top: 2px;
+}
+.big-sign-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+}
+.big-clock {
+  color: white;
+  font-family:'SL Gothic Text 2', sans-serif;
+  font-size: 1.6rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+}
+.back-btn {
+  color: rgba(255,255,255,0.85);
+  background: rgba(255,255,255,0.15);
+  border: 1px solid rgba(255,255,255,0.3);
+  border-radius: 5px;
+  padding: 4px 10px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  font-family:'SL Gothic Text 2', sans-serif;
+  transition: background 0.15s;
+}
+.back-btn:hover { background: rgba(255,255,255,0.25); }
+
+/* Mode filter row */
+.mode-filter-bar {
+  background: white;
+  border-bottom: 1px solid var(--border);
+  padding: 10px 20px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.filter-label-sm { font-size: 0.72rem; font-weight: 700; color: var(--text3); text-transform: uppercase; letter-spacing: 0.05em; margin-right: 4px; }
+.mode-pill {
+  display: flex; align-items: center; gap: 5px;
+  padding: 5px 12px;
+  border: 1.5px solid var(--border);
+  border-radius: 100px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.13s;
+  background: white;
+  color: var(--text2);
+  user-select: none;
+}
+.mode-pill:hover:not(.on) { border-color: #aac4dc; }
+.mode-pill.on { background: var(--sl-blue); border-color: var(--sl-blue); color: white; }
+.toggle-all-link {
+  margin-left: auto;
+  font-size: 0.75rem;
+  color: var(--sl-blue);
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  background: none; border: none;
+  font-family:'SL Gothic Text 2', sans-serif;
+  white-space: nowrap;
+}
+
+/* List header */
+.dep-list-header {
+  background: white;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 20px;
+  border-bottom: 1px solid var(--border);
+}
+.updated-label { font-size: 0.78rem; color: var(--text3); }
+.avgangstid-label { font-size: 0.78rem; color: var(--text); font-weight: 500; }
+.refresh-link {
+  background: none; border: none; cursor: pointer;
+  color: var(--sl-blue); font-size: 0.78rem; font-weight: 600;
+  font-family:'SL Gothic Text 2', sans-serif;
+  display: flex; align-items: center; gap: 4px;
+  text-decoration: underline; text-underline-offset: 2px;
+}
+.refresh-link svg { transition: transform 0.3s; }
+.refresh-link.spinning svg { animation: spin 0.7s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Departure rows */
+.dep-list { background: white; }
+
+.dep-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 20px;
+  min-height: 58px;
+  border-bottom: 1px solid var(--border);
+  animation: fadeIn 0.2s ease both;
+}
+@keyframes fadeIn { from{opacity:0;transform:translateY(3px);} to{opacity:1;transform:translateY(0);} }
+.dep-row:nth-child(odd)  { background: #f7f7f7; }
+.dep-row:nth-child(even) { background: white; }
+
+.dep-mode-circle {
+  width: 26px; height: 26px;
+  border-radius: 50%;
+  border: 2px solid currentColor;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.62rem; font-weight: 900;
+  flex-shrink: 0;
+}
+.dep-mode-circle.metro { color: #111; border-color: #111; }
+.dep-mode-circle.bus   { color: var(--sl-blue); border-color: var(--sl-blue); }
+.dep-mode-circle.tram  { color: #c0392b; border-color: #c0392b; }
+.dep-mode-circle.train { color: #6b2fa0; border-color: #6b2fa0; }
+.dep-mode-circle.ferry { color: #0077b6; border-color: #0077b6; }
+
+.dep-badge {
+  border-radius: 4px;
+  padding: 3px 10px;
+  font-family:'SL Gothic Text 2', sans-serif;
+  font-size: 1rem;
+  font-weight: 700;
+  color: white;
+  flex-shrink: 0;
+  min-width: 38px;
+  text-align: center;
+  letter-spacing: 0.02em;
+}
+.dep-dest {
+  flex: 1;
+  font-family:'SL Gothic Text 2', sans-serif;
+  font-size: 1rem;
+  font-weight: 600;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  letter-spacing: 0.01em;
+}
+.dep-dest.canceled { color: var(--sl-red); text-decoration: line-through; }
+.dep-platform { font-size: 0.75rem; color: var(--text3); flex-shrink: 0; }
+.dep-time-col { text-align: right; flex-shrink: 0; min-width: 90px; display: flex; flex-direction: column; align-items: flex-end; justify-content: center; gap: 1px; }
+.dep-time-big { font-family:'SL Gothic Text 2', sans-serif; font-size: 1.2rem; font-weight: 700; color: var(--text); letter-spacing: 0.02em; line-height: 1.2; }
+.dep-time-big.now { color: var(--metro-green); }
+.dep-time-big.soon { color: var(--sl-red); }
+.dep-clock { font-family:'SL Gothic Text 2', sans-serif; font-size: 0.72rem; font-weight: 400; color: var(--text3); letter-spacing: 0.03em; }
+.dep-delay-note { font-size: 0.65rem; color: var(--sl-red); font-weight: 500; }
+
+/* ── CREATE VIEW ── */
+.create-container {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 24px 16px 40px;
+}
+.create-title { font-size: 1.4rem; font-weight: 900; letter-spacing: -0.02em; margin-bottom: 4px; }
+.create-sub { font-size: 0.85rem; color: var(--text3); margin-bottom: 24px; }
+
+.form-section { margin-bottom: 20px; }
+.form-label {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text2);
+  margin-bottom: 6px;
+}
+.form-input {
+  width: 100%;
+  border: 2px solid var(--border);
+  border-radius: 8px;
+  padding: 11px 14px;
+  font-family:'SL Gothic Text 2', sans-serif;
+  font-size: 0.95rem;
+  color: var(--text);
+  outline: none;
+  transition: border-color 0.15s;
+  background: white;
+}
+.form-input:focus { border-color: var(--sl-blue); }
+.form-input::placeholder { color: var(--text3); }
+
+.search-wrap-create { position: relative; }
+.search-icon-create {
+  position: absolute; left: 12px; top: 50%; transform: translateY(-50%);
+  color: var(--text3); pointer-events: none;
+}
+.form-input.with-icon { padding-left: 38px; }
+
+.dropdown {
+  position: absolute;
+  top: calc(100% + 3px); left: 0; right: 0;
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  z-index: 100;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.12);
+  overflow: hidden;
+  display: none;
+}
+.dropdown.open { display: block; }
+.dd-item {
+  padding: 11px 14px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; gap: 10px;
+  transition: background 0.1s;
+}
+.dd-item:last-child { border-bottom: none; }
+.dd-item:hover { background: var(--sl-blue-bg); }
+.dd-name { flex: 1; font-weight: 500; }
+.dd-id { font-size: 0.68rem; color: var(--text3); }
+
+.selected-stop-box {
+  background: var(--sl-blue-bg);
+  border: 2px solid var(--sl-blue);
+  border-radius: 8px;
+  padding: 10px 14px;
+  display: none;
+  align-items: center;
+  gap: 10px;
+}
+.selected-stop-box.show { display: flex; }
+.selected-stop-name { font-weight: 700; flex: 1; }
+.clear-stop { background: none; border: none; cursor: pointer; color: var(--text3); font-size: 1.1rem; }
+
+/* Color picker */
+.color-options { display: flex; gap: 8px; }
+.color-opt {
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  cursor: pointer;
+  border: 3px solid transparent;
+  transition: all 0.15s;
+  flex-shrink: 0;
+}
+.color-opt.sel { border-color: #333; transform: scale(1.15); }
+
+/* Mode pills for create */
+.mode-pills-create { display: flex; flex-wrap: wrap; gap: 7px; }
+.mode-pill-create {
+  display: flex; align-items: center; gap: 6px;
+  padding: 6px 14px;
+  border: 1.5px solid var(--border);
+  border-radius: 100px;
+  font-size: 0.82rem; font-weight: 600;
+  cursor: pointer; transition: all 0.13s;
+  background: white; color: var(--text2); user-select: none;
+}
+.mode-pill-create.on { background: var(--sl-blue); border-color: var(--sl-blue); color: white; }
+
+/* Buttons */
+.btn-primary {
+  background: var(--sl-blue); color: white;
+  border: none; border-radius: 8px;
+  padding: 13px 24px;
+  font-family:'SL Gothic Text 2', sans-serif;
+  font-size: 0.95rem; font-weight: 700;
+  cursor: pointer; width: 100%;
+  transition: background 0.15s;
+}
+.btn-primary:hover { background: #004a80; }
+.btn-secondary {
+  background: white; color: var(--text);
+  border: 2px solid var(--border); border-radius: 8px;
+  padding: 11px 24px;
+  font-family:'SL Gothic Text 2', sans-serif;
+  font-size: 0.95rem; font-weight: 600;
+  cursor: pointer; width: 100%;
+  transition: all 0.15s;
+  margin-bottom: 8px;
+}
+.btn-secondary:hover { border-color: var(--sl-blue); color: var(--sl-blue); }
+
+/* State boxes */
+.state-box {
+  padding: 48px 24px; text-align: center; color: var(--text3);
+}
+.state-box .icon { font-size: 2.5rem; margin-bottom: 12px; }
+.state-box h3 { font-size: 1rem; font-weight: 700; margin-bottom: 6px; color: var(--text2); }
+.state-box p { font-size: 0.875rem; line-height: 1.6; }
+.state-box a { color: var(--sl-blue); }
+.loading-bar { height: 3px; background: var(--border); overflow: hidden; }
+.loading-bar-inner { height: 100%; background: var(--sl-blue); animation: slide 1.1s ease infinite; width: 35%; }
+@keyframes slide { 0%{transform:translateX(-100%);} 100%{transform:translateX(380%);} }
+
+/* Setup card */
+.setup-card {
+  margin: 16px; background: var(--sl-blue-bg);
+  border: 1px solid #aac4dc; border-radius: 8px; padding: 14px 16px;
+}
+.setup-card h3 { font-size: 0.88rem; font-weight: 700; color: var(--sl-blue); margin-bottom: 5px; }
+.setup-card p { font-size: 0.78rem; color: var(--text2); line-height: 1.6; margin-bottom: 10px; }
+.setup-card a { color: var(--sl-blue); }
+.key-row { display: flex; gap: 8px; }
+.key-input {
+  flex: 1; border: 1px solid #aac4dc; border-radius: 6px;
+  padding: 8px 10px; font-family:'SL Gothic Text 2', sans-serif; font-size: 0.82rem;
+  outline: none; background: white;
+}
+.key-input:focus { border-color: var(--sl-blue); }
+.btn-save { padding: 8px 16px; background: var(--sl-blue); color: white; border: none; border-radius: 6px; font-family:'SL Gothic Text 2', sans-serif; font-size: 0.82rem; font-weight: 600; cursor: pointer; }
+
+/* Debug */
+.debug-wrap { margin: 16px; border: 1px solid var(--border); border-radius: 6px; overflow: hidden; }
+.debug-wrap summary { cursor: pointer; padding: 7px 12px; font-size: 0.7rem; color: var(--text3); background: #fafafa; user-select: none; }
+.debug-log { padding: 8px 12px; font-family: monospace; font-size: 0.65rem; color: var(--text3); white-space: pre-wrap; word-break: break-all; max-height: 180px; overflow-y: auto; border-top: 1px solid var(--border); line-height: 1.7; }
+
+.credits { text-align: center; font-size: 0.68rem; color: var(--text3); padding: 0 16px 16px; }
+.credits a { color: var(--text3); }
+#key-status-line { cursor: pointer; text-decoration: underline; }
+
+@media(max-width:500px) {
+  .big-sign-stop { font-size: 1.25rem; }
+  .dep-row { padding: 0 14px; gap: 8px; }
+  .dep-dest { font-size: 0.9rem; }
+}
+</style>
+</head>
+<body>
+
+<!-- ════════════════════════════════════════ -->
+<!-- VIEW: BOARDS LIST                        -->
+<!-- ════════════════════════════════════════ -->
+<div class="top-nav-spacer"></div>
+<div class="view active" id="view-boards">
+  <div class="top-nav">
+    <div class="sl-circle">T</div>
+    <span class="nav-title">Mina avgångstavlor</span>
+    <button class="nav-btn" onclick="showView('create')">＋ Ny tavla</button>
+  </div>
+
+    </div>
+
+  <div class="boards-container">
+    <div class="boards-title">Mina tavlor</div>
+    <div class="boards-sub">Tryck på en tavla för att se realtidsavgångar.</div>
+    <div class="boards-grid" id="boards-grid"></div>
+  </div>
+
+  <details class="debug-wrap"><summary>⚙ Debug</summary><div class="debug-log" id="debug-log"></div></details>
+  <div class="credits">Data: <a href="https://trafiklab.se" target="_blank">Trafiklab.se</a> / SL – CC BY 4.0</div>
+</div>
+
+<!-- ════════════════════════════════════════ -->
+<!-- VIEW: BOARD DETAIL                       -->
+<!-- ════════════════════════════════════════ -->
+<div class="view" id="view-detail">
+  <!-- Big SL sign header -->
+  <div class="big-sign" id="detail-sign">
+    <div class="big-sign-icon" id="detail-icon"></div>
+    <div class="big-sign-info">
+      <div class="big-sign-stop" id="detail-stop">–</div>
+      <div class="big-sign-board" id="detail-board">–</div>
+    </div>
+    <div class="big-sign-right">
+      <div class="big-clock" id="detail-clock">–</div>
+      <button class="back-btn" onclick="showView('boards')">← Tillbaka</button>
+    </div>
+  </div>
+
+  <div class="board-detail">
+    <!-- Mode filter -->
+    <div class="mode-filter-bar" id="detail-filter-bar">
+      <span class="filter-label-sm">Färdsätt:</span>
+      <div id="detail-mode-pills" style="display:flex;gap:6px;flex-wrap:wrap;"></div>
+      <button class="toggle-all-link" id="detail-toggle-all" onclick="detailToggleAll()"></button>
+    </div>
+
+    <!-- List header -->
+    <div class="dep-list-header" id="detail-list-header" style="display:none">
+      <div style="display:flex;align-items:center;gap:10px">
+        <span class="updated-label" id="detail-updated">–</span>
+        <button class="refresh-link" id="detail-refresh-btn" onclick="loadDetailDepartures()">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+          Uppdatera
+        </button>
+      </div>
+      <span class="avgangstid-label">Avgångstid</span>
+    </div>
+
+    <div class="loading-bar" id="detail-loading" style="display:none"><div class="loading-bar-inner"></div></div>
+    <div class="dep-list" id="detail-dep-list">
+      <div class="state-box"><div class="icon" style="color:#005b99"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#005b99" stroke-width="2" stroke-linecap="round"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" stroke-opacity="0.4"/><path d="M12 2v4" stroke-opacity="1"/></svg></div><h3>Laddar…</h3></div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════ -->
+<!-- VIEW: CREATE BOARD                       -->
+<!-- ════════════════════════════════════════ -->
+<div class="view" id="view-create">
+  <div class="top-nav">
+    <div class="sl-circle">T</div>
+    <span class="nav-title">Skapa ny tavla</span>
+    <button class="nav-btn" onclick="showView('boards')">← Avbryt</button>
+  </div>
+
+  <div class="create-container">
+    <div class="create-title">Ny avgångstavla</div>
+    <div class="create-sub">Välj hållplats, ge tavlan ett namn och välj färgsättning.</div>
+
+    <!-- Step 1: Stop -->
+    <div class="form-section">
+      <label class="form-label">1. Välj hållplats</label>
+      <div class="search-wrap-create" id="create-search-wrap">
+        <svg class="search-icon-create" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input class="form-input with-icon" type="text" id="create-stop-input"
+          placeholder="Sök hållplats…"
+          autocomplete="off"
+          oninput="onCreateSearch(this.value)"
+          onfocus="onCreateSearchFocus()">
+        <div class="dropdown" id="create-dropdown"></div>
+      </div>
+      <div class="selected-stop-box" id="selected-stop-box">
+        <span style="color:var(--sl-blue);display:flex"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg></span>
+        <span class="selected-stop-name" id="selected-stop-name">–</span>
+        <button class="clear-stop" onclick="clearStop()">✕</button>
+      </div>
+    </div>
+
+    <!-- Step 2: Name -->
+    <div class="form-section">
+      <label class="form-label">2. Namn på tavlan</label>
+      <input class="form-input" type="text" id="board-name-input" placeholder="T.ex. Hemma – morgon, Till jobbet…" maxlength="40">
+    </div>
+
+    <!-- Step 3: Color -->
+    <div class="form-section">
+      <label class="form-label">3. Skyltfärg</label>
+      <div class="color-options">
+        <div class="color-opt sel" style="background:#005b99" data-color="blue" onclick="pickColor('blue',this)" title="Blå"></div>
+        <div class="color-opt" style="background:#d4171e" data-color="red" onclick="pickColor('red',this)" title="Röd"></div>
+        <div class="color-opt" style="background:#1d7a3a" data-color="green" onclick="pickColor('green',this)" title="Grön"></div>
+        <div class="color-opt" style="background:#e8830a" data-color="orange" onclick="pickColor('orange',this)" title="Orange"></div>
+        <div class="color-opt" style="background:#444" data-color="dark" onclick="pickColor('dark',this)" title="Svart"></div>
+      </div>
+    </div>
+
+    <!-- Step 4: Default modes -->
+    <div class="form-section">
+      <label class="form-label">4. Visa färdsätt (standard)</label>
+      <div class="mode-pills-create" id="create-mode-pills">
+        <div class="mode-pill-create on" data-mode="BUS">Buss</div>
+        <div class="mode-pill-create on" data-mode="METRO">Tunnelbana</div>
+        <div class="mode-pill-create on" data-mode="TRAM">Spårvagn</div>
+        <div class="mode-pill-create on" data-mode="TRAIN">Tåg</div>
+        <div class="mode-pill-create on" data-mode="FERRY">Båt</div>
+      </div>
+      <div style="font-size:0.73rem;color:var(--text3);margin-top:6px;">Du kan alltid ändra när du tittar på tavlan.</div>
+    </div>
+
+    <button class="btn-primary" onclick="saveBoard()">Spara tavla</button>
+    <div style="height:10px"></div>
+    <button class="btn-secondary" onclick="showView('boards')">Avbryt</button>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════
+// CONFIG & STATE
+const P = '/api/proxy?url=';
+// API-nyckel hanteras server-side av proxy – ej i frontend
+
+let boards        = JSON.parse(localStorage.getItem('sl_boards') || '[]');
+let currentBoard  = null;
+let detailDeps    = [];
+let detailModes   = new Set();
+let activeModes   = new Set();
+let refreshTimer  = null;
+let clockTimer    = null;
+let searchTimer   = null;
+
+// Create view state
+let createStop    = null; // { id, name, source }
+let createColor   = 'blue';
+let createModes   = new Set(['BUS','METRO','TRAM','TRAIN','FERRY']);
+
+// ═══════════════════════════════════════════
+// URLS
+// API-nyckel hanteras av proxy-servern – ingenting känsligt i frontend
+function tlStopUrl(q)  { return P + encodeURIComponent(`https://realtime-api.trafiklab.se/v1/stops/name/${encodeURIComponent(q)}`); }
+function tlDepUrl(id)  { return P + encodeURIComponent(`https://realtime-api.trafiklab.se/v1/departures/${id}`); }
+function slStopUrl(q)  { return P + encodeURIComponent(`https://transport.integration.sl.se/v1/sites?expand=false&q=${encodeURIComponent(q)}`); }
+function slDepUrl(id)  { return P + encodeURIComponent(`https://transport.integration.sl.se/v1/sites/${id}/departures`); }
+
+// ═══════════════════════════════════════════
+// DEBUG
+function dbg(...a) {
+  const msg = a.map(x => typeof x==='object'?JSON.stringify(x):String(x)).join(' ');
+  const el = document.getElementById('debug-log');
+  if (el) { el.textContent += `[${new Date().toTimeString().slice(0,8)}] ${msg}\n`; el.scrollTop = el.scrollHeight; }
+}
+
+// ═══════════════════════════════════════════
+// VIEWS
+function showView(v) {
+  document.querySelectorAll('.view').forEach(el => el.classList.remove('active'));
+  document.getElementById('view-'+v).classList.add('active');
+  window.scrollTo(0,0);
+  if (v === 'boards') renderBoards();
+  if (v === 'create') resetCreate();
+  if (v !== 'detail') { clearInterval(refreshTimer); clearInterval(clockTimer); }
+}
+
+// ═══════════════════════════════════════════
+// KEY
+function init() {
+  renderBoards();
+  // Mode pill toggles in create view
+  document.querySelectorAll('.mode-pill-create').forEach(el => {
+    el.addEventListener('click', () => {
+      const m = el.dataset.mode;
+      if (createModes.has(m)) {
+        if (createModes.size === 1) return;
+        createModes.delete(m);
+        el.classList.remove('on');
+      } else {
+        createModes.add(m);
+        el.classList.add('on');
+      }
+    });
+  });
+  dbg('Init.');
+}
+
+
+
+// ═══════════════════════════════════════════
+// BOARDS RENDER
+const STRIPE_COLORS = { blue:'#005b99', red:'#d4171e', green:'#1d7a3a', orange:'#e8830a', dark:'#333' };
+const MODE_LABEL_SV = { BUS:'Buss', METRO:'Tunnelbana', SUBWAY:'Tunnelbana', TRAM:'Spårvagn', TRAIN:'Tåg', FERRY:'Båt', LIGHT_RAIL:'Spårväg' };
+const MODE_ICON_EMOJI = { BUS:'🚌', METRO:'🚇', SUBWAY:'🚇', TRAM:'🚋', TRAIN:'🚆', FERRY:'⛴', LIGHT_RAIL:'🚋' };
+
+// ─── SVG TRANSPORT ICONS ───────────────────────────────────────────
+function modeIconSVG(m, size) {
+  const cls = size === 'lg' ? 'lg' : size === 'sm' ? 'sm' : '';
+  const icons = {
+    BUS: `<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><rect width="24" height="24" rx="3" fill="#005b99"/><rect x="5" y="7" width="14" height="9" rx="1.5" fill="white"/><rect x="7" y="9" width="4" height="3" rx="0.5" fill="#005b99"/><rect x="13" y="9" width="4" height="3" rx="0.5" fill="#005b99"/><circle cx="8" cy="18" r="1.8" fill="white"/><circle cx="16" cy="18" r="1.8" fill="white"/><rect x="5" y="14" width="14" height="1.5" fill="#005b99"/></svg>`,
+    METRO: `<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><rect width="24" height="24" rx="3" fill="#111"/><circle cx="12" cy="12" r="7" stroke="white" stroke-width="2.5" fill="none"/><text x="12" y="16.5" text-anchor="middle" font-family="Arial,sans-serif" font-size="10" font-weight="900" fill="white">T</text></svg>`,
+    TRAM: `<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><rect width="24" height="24" rx="3" fill="#c0392b"/><rect x="7" y="7" width="10" height="9" rx="1.5" stroke="white" stroke-width="2" fill="none"/><rect x="9" y="9" width="6" height="2.5" rx="0.5" fill="white"/><line x1="7" y1="14" x2="17" y2="14" stroke="white" stroke-width="1.5"/><circle cx="9.5" cy="18.5" r="1.5" fill="white"/><circle cx="14.5" cy="18.5" r="1.5" fill="white"/><line x1="9" y1="7" x2="9" y2="5" stroke="white" stroke-width="1.5"/><line x1="15" y1="7" x2="15" y2="5" stroke="white" stroke-width="1.5"/></svg>`,
+    TRAIN: `<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><rect width="24" height="24" rx="3" fill="#6b2fa0"/><rect x="7" y="4" width="10" height="13" rx="2" stroke="white" stroke-width="2" fill="none"/><line x1="7" y1="10" x2="17" y2="10" stroke="white" stroke-width="1.5"/><circle cx="9.5" cy="7" r="1" fill="white"/><circle cx="14.5" cy="7" r="1" fill="white"/><circle cx="9.5" cy="19.5" r="1.8" fill="white"/><circle cx="14.5" cy="19.5" r="1.8" fill="white"/></svg>`,
+    FERRY: `<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><rect width="24" height="24" rx="3" fill="#0077b6"/><path d="M5 15 L7 11 L17 11 L19 15 Z" fill="white"/><rect x="11" y="6" width="2.5" height="5" fill="white"/><rect x="9" y="8" width="6" height="2.5" fill="white"/><path d="M4 17 Q8 15.5 12 17 Q16 18.5 20 17" stroke="white" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg>`,
+  };
+  const svg = icons[m] || icons['BUS'];
+  return '<div class="mode-icon-wrap ' + cls + '">' + svg + '</div>';
+}
+
+
+function renderBoards() {
+  const grid = document.getElementById('boards-grid');
+  if (!boards.length) {
+    grid.innerHTML = `
+      <div class="add-card" onclick="showView('create')" style="grid-column:1/-1;max-width:340px;margin:0 auto">
+        <div class="add-card-icon"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></div>
+        <div class="add-card-label">Skapa din första tavla</div>
+        <div style="font-size:0.75rem;color:inherit;text-align:center;margin-top:4px">Välj hållplats, namn och färgsättning</div>
+      </div>`;
+    return;
+  }
+
+  grid.innerHTML = boards.map((b, i) => {
+    const color = STRIPE_COLORS[b.color] || STRIPE_COLORS.blue;
+    const modes = (b.defaultModes || ['BUS','METRO','TRAM','TRAIN','FERRY']);
+    const primaryMode = [...new Set(modes)][0] || 'BUS';
+    return `
+    <div class="sign-card" onclick="openBoard(${i})">
+      <div class="sign-stripe" style="background:${color}">
+        <div class="sign-mode-icon">${modeIconSVG(primaryMode)}</div>
+        <div>
+          <div class="sign-stop-name">${b.stopName}</div>
+          <div class="sign-board-name">${b.name}</div>
+        </div>
+      </div>
+      <div class="sign-panel">
+        <span class="panel-next">Nästa avgång</span>
+        <span class="panel-time">– min</span>
+      </div>
+      <div class="sign-card-footer">
+        <span class="card-footer-label">Skapad ${new Date(b.created).toLocaleDateString('sv-SE')}</span>
+        <button class="card-delete" onclick="event.stopPropagation();deleteBoard(${i})">Ta bort</button>
+      </div>
+    </div>`;
+  }).join('') + `
+    <div class="add-card" onclick="showView('create')">
+      <div class="add-card-icon"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></div>
+      <div class="add-card-label">Ny tavla</div>
+    </div>`;
+}
+
+function deleteBoard(i) {
+  if (!confirm(`Ta bort "${boards[i].name}"?`)) return;
+  boards.splice(i, 1);
+  localStorage.setItem('sl_boards', JSON.stringify(boards));
+  renderBoards();
+}
+
+// ═══════════════════════════════════════════
+// OPEN BOARD DETAIL
+function openBoard(i) {
+  currentBoard = boards[i];
+  activeModes  = new Set(currentBoard.defaultModes || ['BUS','METRO','TRAM','TRAIN','FERRY']);
+  detailDeps   = [];
+
+  const color = STRIPE_COLORS[currentBoard.color] || STRIPE_COLORS.blue;
+  const sign  = document.getElementById('detail-sign');
+  sign.style.background = color;
+
+  const modes = currentBoard.defaultModes || [];
+  const primaryMode = [...new Set(modes)][0] || 'BUS';
+  document.getElementById('detail-icon').innerHTML = modeIconSVG(primaryMode, 'lg');
+
+  document.getElementById('detail-stop').textContent  = currentBoard.stopName;
+  document.getElementById('detail-board').textContent = currentBoard.name;
+  document.getElementById('detail-filter-bar').style.display = 'none';
+  document.getElementById('detail-list-header').style.display = 'none';
+
+  showView('detail');
+  loadDetailDepartures();
+  startClock();
+}
+
+// ═══════════════════════════════════════════
+// DEPARTURES
+async function loadDetailDepartures() {
+  clearInterval(refreshTimer);
+  document.getElementById('detail-loading').style.display = 'block';
+  document.getElementById('detail-refresh-btn').classList.add('spinning');
+  document.getElementById('detail-dep-list').innerHTML =
+    '<div class="state-box"><div class="icon" style="color:#005b99"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#005b99" stroke-width="2" stroke-linecap="round"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" stroke-opacity="0.4"/><path d="M12 2v4" stroke-opacity="1"/></svg></div><h3>Hämtar avgångar…</h3></div>';
+
+  try {
+    const s = currentBoard.source;
+    const id = currentBoard.stopId;
+    let raw = [];
+
+    try { raw = await fetchTLDeps(id); }
+    catch(e) { dbg('TL fallback till SL:', e.message); raw = await fetchSLDeps(id); }
+
+    detailDeps = raw;
+    detailModes = new Set(raw.map(d => d.mode));
+    // Keep only modes that exist in data
+    activeModes = new Set([...activeModes].filter(m => detailModes.has(m)));
+    if (!activeModes.size) activeModes = new Set(detailModes);
+
+    buildDetailModeFilter();
+    renderDetailDeps();
+
+    document.getElementById('detail-updated').textContent =
+      `Uppdaterad ${new Date().toTimeString().slice(0,5)}`;
+    document.getElementById('detail-list-header').style.display = 'flex';
+  } catch(e) {
+    dbg('DEP FEL:', e.message);
+    document.getElementById('detail-dep-list').innerHTML = `
+      <div class="state-box">
+        <div class="icon"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#d4171e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div>
+        <h3>Kunde inte hämta avgångar</h3>
+        <p>${e.message}</p>
+      </div>`;
+  } finally {
+    document.getElementById('detail-loading').style.display = 'none';
+    document.getElementById('detail-refresh-btn').classList.remove('spinning');
+    refreshTimer = setInterval(loadDetailDepartures, 30000);
+  }
+}
+
+async function fetchTLDeps(id) {
+  const r = await fetch(tlDepUrl(id));
+  dbg('TL dep status:', r.status);
+  if (!r.ok) { const t=await r.text(); dbg('TL fel:', t.slice(0,150)); throw new Error('TL '+r.status); }
+  const d = await r.json();
+  dbg('TL avgångar:', (d.departures||[]).length);
+  return (d.departures||[]).map(x => ({
+    line:      x.route?.designation || x.route?.name || '?',
+    dest:      x.route?.direction || x.destination || '–',
+    mode:      (x.route?.transport_mode||'BUS').toUpperCase(),
+    scheduled: x.scheduled,
+    realtime:  x.realtime,
+    canceled:  !!x.canceled,
+    platform:  x.stop_point?.designation || '',
+  }));
+}
+
+async function fetchSLDeps(id) {
+  const r = await fetch(slDepUrl(id));
+  dbg('SL dep status:', r.status);
+  if (!r.ok) { const t=await r.text(); dbg('SL fel:', t.slice(0,150)); throw new Error('SL '+r.status); }
+  const d = await r.json();
+  dbg('SL avgångar:', (d.departures||[]).length);
+  return (d.departures||[]).map(x => ({
+    line:      x.line?.designation || x.line?.name || '?',
+    dest:      x.destination || x.direction || x.line?.direction || '–',
+    mode:      (x.line?.transport_mode||'BUS').toUpperCase(),
+    scheduled: x.scheduled || x.time_tabled_date_time,
+    realtime:  x.expected || x.realtime || x.estimated_date_time,
+    canceled:  x.state === 'CANCELLED',
+    platform:  x.stop_point?.designation || x.stop_area?.designation || '',
+  }));
+}
+
+// ═══════════════════════════════════════════
+// MODE FILTER (detail view)
+function buildDetailModeFilter() {
+  const bar = document.getElementById('detail-filter-bar');
+  if (detailModes.size <= 1) { bar.style.display = 'none'; return; }
+  bar.style.display = 'flex';
+
+  document.getElementById('detail-mode-pills').innerHTML =
+    [...detailModes].map(m => `
+      <div class="mode-pill${activeModes.has(m)?' on':''}" id="dpill-${m}" onclick="toggleDetailMode('${m}',this)">
+        ${modeIconSVG(m,'sm')} ${MODE_LABEL_SV[m]||m}
+      </div>`).join('');
+  updateDetailToggleBtn();
+}
+
+function toggleDetailMode(m, el) {
+  if (activeModes.has(m)) {
+    if (activeModes.size===1) return;
+    activeModes.delete(m);
+    el.classList.remove('on');
+  } else {
+    activeModes.add(m);
+    el.classList.add('on');
+  }
+  updateDetailToggleBtn();
+  renderDetailDeps();
+}
+
+function detailToggleAll() {
+  if (activeModes.size === detailModes.size) {
+    activeModes = new Set([[...detailModes][0]]);
+  } else {
+    activeModes = new Set(detailModes);
+  }
+  [...detailModes].forEach(m => {
+    const el = document.getElementById('dpill-'+m);
+    if (el) el.classList.toggle('on', activeModes.has(m));
+  });
+  updateDetailToggleBtn();
+  renderDetailDeps();
+}
+
+function updateDetailToggleBtn() {
+  const btn = document.getElementById('detail-toggle-all');
+  btn.textContent = activeModes.size === detailModes.size ? 'Avmarkera alla' : 'Markera alla';
+}
+
+// ═══════════════════════════════════════════
+// RENDER DEPARTURES
+// SL tunnelbana: blå=10/11, röd=13/14, grön=17/18/19
+const METRO_LINE_COLOR = {
+  10:'#0062a3', 11:'#0062a3',   // Blå linjen
+  13:'#d4171e', 14:'#d4171e',   // Röda linjen
+  17:'#1d7a3a', 18:'#1d7a3a', 19:'#1d7a3a',  // Gröna linjen
+};
+function lineColor(line, mode) {
+  if (mode==='METRO'||mode==='SUBWAY') {
+    const n = parseInt(line);
+    return METRO_LINE_COLOR[n] || '#1d7a3a';
+  }
+  if(mode==='BUS')   return '#0062a3';
+  if(mode==='TRAM')  return '#c0392b';
+  if(mode==='TRAIN') return '#6b2fa0';
+  if(mode==='FERRY') return '#0077b6';
+  return '#444';
+}
+function modeCircleClass(m) {
+  return {BUS:'bus',METRO:'metro',SUBWAY:'metro',TRAM:'tram',TRAIN:'train',FERRY:'ferry'}[m]||'bus';
+}
+function modeCircleChar(m) {
+  return {BUS:'B',METRO:'T',SUBWAY:'T',TRAM:'Sp',TRAIN:'J',FERRY:'Bå'}[m]||'?';
+}
+
+function renderDetailDeps() {
+  const now = new Date();
+  const list = detailDeps.filter(d => activeModes.has(d.mode));
+
+  if (!list.length) {
+    document.getElementById('detail-dep-list').innerHTML =
+      '<div class="state-box"><div class="icon"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#888" stroke-width="1.5" stroke-linecap="round"><circle cx="12" cy="5" r="2"/><path d="M12 7v10"/><path d="M12 10h5l-2 2 2 2H12"/></svg></div><h3>Inga avgångar</h3><p>Inga avgångar matchar valt färdsätt.</p></div>';
+    return;
+  }
+
+  document.getElementById('detail-dep-list').innerHTML = list.map((d, i) => {
+    const rt      = d.realtime  ? new Date(d.realtime)  : null;
+    const sch     = d.scheduled ? new Date(d.scheduled) : null;
+    const t       = rt || sch;
+    const diffMin = t ? Math.round((t - now) / 60000) : null;
+    const delayMin= (rt&&sch) ? Math.round((rt-sch)/60000) : 0;
+    const delayed = delayMin > 1;
+
+    // Minuter kvar
+    let minHtml, clockHtml = '', timeClass = '';
+    if (d.canceled) {
+      minHtml   = `<span style="color:var(--sl-red);font-size:0.78rem;font-weight:700">Inställd</span>`;
+      clockHtml = '';
+    } else if (diffMin===null) {
+      minHtml   = `<span class="dep-time-big">–</span>`;
+    } else if (diffMin <= 0) {
+      minHtml   = `<span class="dep-time-big now">Nu</span>`;
+      clockHtml = t ? `<span class="dep-clock">${t.toTimeString().slice(0,5)}</span>` : '';
+    } else {
+      timeClass = diffMin <= 2 ? 'soon' : '';
+      minHtml   = `<span class="dep-time-big ${timeClass}">${diffMin} min</span>`;
+      clockHtml = t ? `<span class="dep-clock">${t.toTimeString().slice(0,5)}</span>` : '';
+    }
+    if (delayed && !d.canceled) {
+      minHtml += `<div class="dep-delay-note">+${delayMin} min</div>`;
+    }
+
+    return `<div class="dep-row" style="animation-delay:${i*18}ms">
+      ${modeIconSVG(d.mode)}
+      <div class="dep-badge" style="background:${lineColor(d.line,d.mode)}">${d.line}</div>
+      <div class="dep-dest${d.canceled?' canceled':''}">${d.dest}</div>
+      ${d.platform?`<div class="dep-platform">Läge ${d.platform}</div>`:''}
+      <div class="dep-time-col">
+        ${minHtml}
+        ${clockHtml}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ═══════════════════════════════════════════
+// CLOCK
+function startClock() {
+  clearInterval(clockTimer);
+  const tick = () => {
+    const el = document.getElementById('detail-clock');
+    if (el) el.textContent = new Date().toTimeString().slice(0,5);
+  };
+  tick(); clockTimer = setInterval(tick, 1000);
+}
+
+// ═══════════════════════════════════════════
+// CREATE BOARD
+function resetCreate() {
+  createStop  = null;
+  createColor = 'blue';
+  createModes = new Set(['BUS','METRO','TRAM','TRAIN','FERRY']);
+  document.getElementById('create-stop-input').value = '';
+  document.getElementById('board-name-input').value = '';
+  document.getElementById('selected-stop-box').classList.remove('show');
+  document.getElementById('create-dropdown').classList.remove('open');
+  // Reset color
+  document.querySelectorAll('.color-opt').forEach(el => {
+    el.classList.toggle('sel', el.dataset.color === 'blue');
+  });
+  // Reset mode pills
+  document.querySelectorAll('.mode-pill-create').forEach(el => {
+    el.classList.add('on');
+    createModes.add(el.dataset.mode);
+  });
+}
+
+function pickColor(color, el) {
+  createColor = color;
+  document.querySelectorAll('.color-opt').forEach(e => e.classList.remove('sel'));
+  el.classList.add('sel');
+}
+
+// Create search
+function onCreateSearch(q) {
+  clearTimeout(searchTimer);
+  if (q.length < 2) { closeCreateDD(); return; }
+  searchTimer = setTimeout(() => doCreateSearch(q), 280);
+}
+function onCreateSearchFocus() {
+  const v = document.getElementById('create-stop-input').value;
+  if (v.length >= 2) doCreateSearch(v);
+}
+
+async function doCreateSearch(q) {
+  showCreateDDMsg('Söker…');
+  try {
+    const r = await fetch(tlStopUrl(q));
+    dbg('Create TL stop:', r.status);
+    if (r.ok) {
+      const d = await r.json();
+      const groups = d.stop_groups || [];
+      if (groups.length) { renderCreateTLStops(groups); return; }
+    }
+  } catch(e) { dbg('Create TL exception:', e.message); }
+  try {
+    const r = await fetch(slStopUrl(q));
+    dbg('Create SL stop:', r.status);
+    if (!r.ok) throw new Error('HTTP '+r.status);
+    const data = await r.json();
+    const hits = (Array.isArray(data)?data:data.sites||[]).slice(0,10);
+    renderCreateSLStops(hits);
+  } catch(e) { showCreateDDMsg('Sökning misslyckades.'); }
+}
+
+function renderCreateTLStops(groups) {
+  const dd = document.getElementById('create-dropdown');
+  dd.innerHTML = groups.slice(0,8).map(g =>
+    `<div class="dd-item" onclick="pickStop('${g.id}','${esc(g.name)}','tl')">
+      <span style="color:var(--sl-blue);display:flex"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg></span><span class="dd-name">${g.name}</span><span class="dd-id">${g.id}</span>
+    </div>`).join('');
+  dd.classList.add('open');
+}
+function renderCreateSLStops(sites) {
+  if (!sites.length) { showCreateDDMsg('Inga hållplatser hittades.'); return; }
+  const dd = document.getElementById('create-dropdown');
+  dd.innerHTML = sites.map(s =>
+    `<div class="dd-item" onclick="pickStop('${s.id}','${esc(s.name)}','sl')">
+      <span style="color:var(--sl-blue);display:flex"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg></span><span class="dd-name">${s.name}</span><span class="dd-id">SL ${s.id}</span>
+    </div>`).join('');
+  dd.classList.add('open');
+}
+function showCreateDDMsg(msg) {
+  const dd = document.getElementById('create-dropdown');
+  dd.innerHTML = `<div class="dd-item" style="cursor:default;color:#888">${msg}</div>`;
+  dd.classList.add('open');
+}
+function closeCreateDD() { document.getElementById('create-dropdown').classList.remove('open'); }
+
+function pickStop(id, name, source) {
+  createStop = { id, name, source };
+  document.getElementById('create-stop-input').value = '';
+  closeCreateDD();
+  document.getElementById('selected-stop-name').textContent = name;
+  document.getElementById('selected-stop-box').classList.add('show');
+  // Auto-fill name if empty
+  const nameInput = document.getElementById('board-name-input');
+  if (!nameInput.value) nameInput.value = name;
+}
+function clearStop() {
+  createStop = null;
+  document.getElementById('selected-stop-box').classList.remove('show');
+}
+
+function saveBoard() {
+  if (!createStop) { alert('Välj en hållplats först.'); return; }
+  const name = document.getElementById('board-name-input').value.trim();
+  if (!name) { alert('Ge tavlan ett namn.'); return; }
+
+  const board = {
+    id:           Date.now().toString(),
+    name,
+    stopId:       createStop.id,
+    stopName:     createStop.name,
+    source:       createStop.source,
+    color:        createColor,
+    defaultModes: [...createModes],
+    created:      new Date().toISOString(),
+  };
+  boards.push(board);
+  localStorage.setItem('sl_boards', JSON.stringify(boards));
+  dbg('Tavla sparad:', name);
+  showView('boards');
+}
+
+// ═══════════════════════════════════════════
+// HELPERS
+function esc(s) { return (s||'').replace(/'/g,"\\'"); }
+
+document.addEventListener('click', e => {
+  if (!e.target.closest('#create-search-wrap')) closeCreateDD();
+});
+
+init();
+</script>
+</body>
+</html>
