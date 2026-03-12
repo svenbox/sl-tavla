@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#005b99">
+    <title>SL Avgångstavla</title>
+    <link rel="manifest" href="/manifest.json">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        /* Grundläggande SL-estetik */
+        :root {
+            --sl-blue: #005b99;
+            --sl-orange: #e8830a;
+            --bg: #efefef;
+            --panel-bg: #1a1a1a;
+            --text-white: #ffffff;
+        }
+        body { font-family: 'Inter', sans-serif; background: var(--bg); margin: 0; }
+        .dep-row { display: flex; align-items: center; padding: 12px; border-bottom: 1px solid #ddd; background: #fff; }
+        .dep-line { background: var(--sl-blue); color: #fff; padding: 4px 8px; border-radius: 4px; font-weight: bold; min-width: 45px; text-align: center; }
+        .dep-dest { flex: 1; margin-left: 15px; font-weight: 600; font-size: 1.1em; }
+        .dep-time { font-weight: bold; color: var(--sl-blue); }
+        .canceled { text-decoration: line-through; color: #888; }
+        .dev-icon { color: var(--sl-orange); margin-left: 8px; cursor: help; }
+        
+        /* PWA-fix för att dölja scroll i installerat läge */
+        @media screen and (display-mode: standalone) {
+            body { -webkit-tap-highlight-color: transparent; }
+        }
+    </style>
+</head>
+<body>
+
+<div id="app">
+    <div id="board-container"></div>
+</div>
+
+<script>
+    // Konfiguration - Använder Nginx-proxyn
+    const PROXY_PATH = '/proxy?url=';
+
+    async function fetchSLDeps(siteId) {
+        const targetUrl = `https://transport.integration.sl.se/v1/sites/${siteId}/departures`;
+        try {
+            const r = await fetch(PROXY_PATH + encodeURIComponent(targetUrl));
+            const d = await r.json();
+            return (d.departures || []).map(x => ({
+                line: x.line?.designation || '?',
+                dest: x.destination || '–',
+                time: x.expected || x.scheduled,
+                canceled: x.state === 'CANCELLED',
+                deviations: x.deviations || []
+            }));
+        } catch (e) {
+            console.error("Fel vid hämtning:", e);
+            return [];
+        }
+    }
+
+    function renderRow(d) {
+        const hasDev = d.deviations && d.deviations.length > 0;
+        const devText = hasDev ? d.deviations.map(dv => dv.consequence).join('. ') : '';
+        
+        return `
+            <div class="dep-row">
+                <div class="dep-line">${d.line}</div>
+                <div class="dep-dest ${d.canceled ? 'canceled' : ''}">
+                    ${d.dest} ${hasDev ? `<span class="dev-icon" title="${devText}">⚠️</span>` : ''}
+                </div>
+                <div class="dep-time">${d.canceled ? 'Inställd' : formatTime(d.time)}</div>
+            </div>
+        `;
+    }
+
+    function formatTime(iso) {
+        const diff = Math.round((new Date(iso) - new Date()) / 60000);
+        if (diff <= 0) return 'Nu';
+        if (diff > 30) return iso.split('T')[1].substring(0, 5);
+        return diff + ' min';
+    }
+
+    // Registrera Service Worker för PWA
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('/service-worker.js');
+        });
+    }
+</script>
+</body>
+</html>
