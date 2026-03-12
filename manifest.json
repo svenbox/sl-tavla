@@ -1,0 +1,22 @@
+{
+  "name": "SL Avgångstavla",
+  "short_name": "Tavlan",
+  "description": "Personlig avgångstavla för SL-trafik",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#efefef",
+  "theme_color": "#005b99",
+  "icons": [
+    {
+      "src": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/84/SL_logo.svg/192px-SL_logo.svg.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/84/SL_logo.svg/512px-SL_logo.svg.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
