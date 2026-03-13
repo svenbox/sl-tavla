@@ -1051,7 +1051,7 @@ function modeIconSVG(m, size) {
     METRO: `<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><rect width="24" height="24" rx="4" fill="#1a1a1a"/><path fill="white" fill-rule="evenodd" d="M12 19a7 7 0 100-14 7 7 0 000 14zm8-7a8 8 0 11-16 0 8 8 0 0116 0zm-6.75-1.25h3.25v-2.5h-9v2.5h3.25v6.75h2.5v-6.75z" clip-rule="evenodd"/></svg>`,
     TRAM: `<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><rect width="24" height="24" rx="4" fill="#1a1a1a"/><path fill="white" fill-rule="evenodd" d="M9.5 4.5A.5.5 0 0110 4h4a.5.5 0 110 1h-4a.5.5 0 01-.5-.5zm.6 13.5h3.8l1.6 2H17l-1.803-2.254c.361-.202.659-.515.84-.907l1.126-2.436a6 6 0 00.425-3.76l-.585-2.764A3 3 0 0014.068 5.5H9.932a3 3 0 00-2.935 2.38l-.585 2.763a6 6 0 00.425 3.76l1.126 2.436c.181.392.479.705.84.907L7 20h1.5l1.6-2zm-.35-3.5a.75.75 0 100 1.5.75.75 0 000-1.5zm3.75.75a.75.75 0 111.5 0 .75.75 0 01-1.5 0zM9.574 7a1 1 0 00-.997 1.071l.333 4.674a.545.545 0 00.394.485 9.812 9.812 0 005.392 0 .545.545 0 00.394-.486l.334-4.673A1 1 0 0014.426 7H9.574z" clip-rule="evenodd"/></svg>`,
     TRAIN: `<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><rect width="24" height="24" rx="4" fill="#1a1a1a"/><rect x="6.5" y="4" width="11" height="13" rx="2.5" stroke="white" stroke-width="1.8" fill="none"/><line x1="6.5" y1="10" x2="17.5" y2="10" stroke="white" stroke-width="1.5"/><circle cx="9.5" cy="7" r="1.2" fill="white"/><circle cx="14.5" cy="7" r="1.2" fill="white"/><circle cx="9" cy="19.5" r="2" fill="white"/><circle cx="15" cy="19.5" r="2" fill="white"/><line x1="9" y1="17" x2="9" y2="19.5" stroke="white" stroke-width="1.5"/><line x1="15" y1="17" x2="15" y2="19.5" stroke="white" stroke-width="1.5"/></svg>`,
-    FERRY: `<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><rect width="24" height="24" rx="4" fill="#1a1a1a"/><path d="M4 15 L6.5 10 L17.5 10 L20 15 Z" fill="white"/><rect x="11" y="5" width="2.5" height="5" fill="white"/><rect x="8.5" y="7" width="7" height="2.5" fill="white"/><path d="M3 17.5 Q7.5 16 12 17.5 Q16.5 19 21 17.5" stroke="white" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg>`,
+    FERRY: `<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><rect width="24" height="24" rx="4" fill="#1a1a1a"/><path fill="white" fill-rule="evenodd" d="M11 5v-.777c0-.075.078-.14.19-.158a5.083 5.083 0 011.62 0c.112.018.19.083.19.158V5h-2zM6.504 15L6.5 16c.45 0 .697-.101.97-.212.334-.136.706-.288 1.531-.288.826 0 1.348.303 1.818.576.383.222.732.424 1.181.424.45 0 .798-.202 1.183-.424.47-.273.994-.576 1.819-.576s1.196.152 1.53.288c.272.111.519.212.968.212v-1c.002 0 .882-1.993 1.295-2.927a.499.499 0 00-.273-.665L17.5 11V7.5a2 2 0 00-2-2H8.502a2 2 0 00-2 1.999L6.5 11l-1.019.408a.5.5 0 00-.271.666L6.504 15zm1.43 4.368c-.539.308-1.21.632-2.434.632H4v-2H5.5c.776 0 1.105-.176 1.441-.368l.095-.055C7.459 17.332 8.032 17 9 17c1.05 0 1.63.385 2.055.668l.004.003c.323.215.494.329.941.329.456 0 .647-.12.98-.338l.02-.013c.414-.27.994-.649 2-.649.928 0 1.503.329 1.916.565l.11.063c.346.194.694.372 1.474.372H20v2H18.5c-1.22 0-1.906-.322-2.452-.628l-.1-.056c-.396-.223-.56-.316-.948-.316-.41 0-.577.109-.928.338-.435.283-1.028.662-2.072.662-1.05 0-1.63-.385-2.055-.668l-.004-.003C9.618 19.114 9.447 19 9 19c-.425 0-.598.1-.98.319l-.086.05zM16 7H8v3.5L12 9l4 1.5V7z" clip-rule="evenodd"/></svg>`,
   };
   const svg = icons[m] || icons['BUS'];
   return '<div class="mode-icon-wrap ' + cls + '">' + svg + '</div>';
@@ -1308,7 +1308,7 @@ async function fetchTLDeps(id) {
   return (d.departures||[]).map(x => ({
     line:      x.route?.designation || x.route?.name || '?',
     dest:      x.route?.direction || x.destination || '–',
-    mode:      (x.route?.transport_mode||'BUS').toUpperCase(),
+    mode:      (['FERRY','SHIP','BOAT','WATER'].includes((x.route?.transport_mode||'').toUpperCase()) ? 'FERRY' : (x.route?.transport_mode||'BUS').toUpperCase()),
     scheduled: x.scheduled,
     realtime:  x.realtime,
     canceled:  !!x.canceled,
@@ -1327,7 +1327,7 @@ async function fetchSLDeps(id) {
   return (d.departures||[]).map(x => ({
     line:      x.line?.designation || x.line?.name || '?',
     dest:      x.destination || x.direction || x.line?.direction || '–',
-    mode:      (x.line?.transport_mode||'BUS').toUpperCase(),
+    mode:      (['FERRY','SHIP','BOAT','WATER'].includes((x.line?.transport_mode||'').toUpperCase()) ? 'FERRY' : (x.line?.transport_mode||'BUS').toUpperCase()),
     scheduled: x.scheduled || x.time_tabled_date_time,
     realtime:  x.expected || x.realtime || x.estimated_date_time,
     canceled:  x.state === 'CANCELLED',
@@ -1400,7 +1400,7 @@ function lineBadgeStyle(line, mode) {
   if(mode==='BUS')   return 'background:#1a1a1a;border-radius:2px';
   if(mode==='TRAM')  return 'background:#c0392b;border-radius:50px';
   if(mode==='TRAIN') return 'background:#8B4513;border-radius:2px';
-  if(mode==='FERRY') return 'background:#0077b6;border-radius:8px';
+  if(mode==='FERRY') return 'background:#1d8fc9;border-radius:8px';
   return 'background:#444;border-radius:4px';
 }
 function lineColor(line, mode) {
