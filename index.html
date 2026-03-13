@@ -1177,17 +1177,15 @@ function renderBoards() {
   const navBtn = document.querySelector('.top-nav .nav-btn[onclick*="create"]');
   if (navBtn) navBtn.style.display = boards.length >= MAX_BOARDS ? 'none' : '';
 
-  // Fetch next departure for each board async
-  boards.forEach((b, i) => fetchNextDeparture(b, i));
+  // Hämta avgångar med fördröjning för att undvika quota-problem
+  boards.forEach((b, i) => setTimeout(() => fetchNextDeparture(b, i), i * 600));
 }
 
 async function fetchNextDeparture(board, i) {
   const panel = document.getElementById(`card-panel-${i}`);
   if (!panel) return;
   try {
-    let deps = [];
-    try { deps = await fetchTLDeps(board.stopId); }
-    catch(e) { deps = await fetchSLDeps(board.stopId); }
+    const deps = await fetchDeps(board);
 
     // Update icon based on dominant mode in data
     const iconEl = document.getElementById(`card-icon-${i}`);
@@ -1352,12 +1350,7 @@ async function loadDetailDepartures() {
     '<div class="state-box"><div class="icon" style="color:#005b99"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#005b99" stroke-width="2" stroke-linecap="round"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" stroke-opacity="0.4"/><path d="M12 2v4" stroke-opacity="1"/></svg></div><h3>Hämtar avgångar…</h3></div>';
 
   try {
-    const s = currentBoard.source;
-    const id = currentBoard.stopId;
-    let raw = [];
-
-    try { raw = await fetchTLDeps(id); }
-    catch(e) { dbg('TL fallback till SL:', e.message); raw = await fetchSLDeps(id); }
+    let raw = await fetchDeps(currentBoard);
 
     detailDeps = raw;
     detailModes = new Set(raw.map(d => d.mode));
@@ -1392,7 +1385,34 @@ async function loadDetailDepartures() {
   }
 }
 
-async function fetchTLDeps(id) {
+const DEP_CACHE = {};  // sessionStorage-baserad cache
+
+async function fetchDeps(board) {
+  const cacheKey = 'deps_' + board.stopId;
+  const cached = DEP_CACHE[cacheKey];
+  if (cached && (Date.now() - cached.ts) < 30000) return cached.data; // 30s cache
+
+  // Försök TL med TL-ID
+  try {
+    const data = await fetchTLDeps(board.stopId);
+    DEP_CACHE[cacheKey] = { ts: Date.now(), data };
+    return data;
+  } catch(e) {
+    if (e.message === 'QUOTA') dbg('TL quota slut, försöker SL');
+    else dbg('TL fel:', e.message);
+  }
+
+  // Fallback: SL API – använd slId om det finns, annars försök med stopId
+  const slId = board.slId || board.stopId;
+  try {
+    const data = await fetchSLDeps(slId);
+    DEP_CACHE[cacheKey] = { ts: Date.now(), data };
+    return data;
+  } catch(e) {
+    dbg('SL fel:', e.message);
+    throw e;
+  }
+}
   const r = await fetch(tlDepUrl(id));
   dbg('TL dep status:', r.status);
   if (r.status === 429) throw new Error('QUOTA');
@@ -1648,10 +1668,13 @@ function renderCreateTLStops(groups) {
   const dd = document.getElementById('create-dropdown');
   const slGroups = groups.filter(g => isSLStop(g.id));
   if (!slGroups.length) { showCreateDDMsg('Inga SL-hållplatser hittades.'); return; }
-  dd.innerHTML = slGroups.slice(0,8).map(g =>
-    `<div class="dd-item" onclick="pickStop('${g.id}','${esc(g.name)}','tl')">
+  dd.innerHTML = slGroups.slice(0,8).map(g => {
+    // TL-grupper innehåller ofta stops med SL site-ID i stop_areas
+    const slSiteId = (g.stop_areas||[]).map(a => a.id).find(id => String(id).length <= 6) || '';
+    return `<div class="dd-item" onclick="pickStop('${g.id}','${esc(g.name)}','tl','${slSiteId}')">
       <span style="color:var(--sl-blue);display:flex"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg></span><span class="dd-name">${g.name}</span><span class="dd-id">${g.id}</span>
-    </div>`).join('');
+    </div>`;
+  }).join('');
   dd.classList.add('open');
 }
 function renderCreateSLStops(sites) {
@@ -1670,13 +1693,12 @@ function showCreateDDMsg(msg) {
 }
 function closeCreateDD() { document.getElementById('create-dropdown').classList.remove('open'); }
 
-function pickStop(id, name, source) {
-  createStop = { id, name, source };
+function pickStop(id, name, source, slId) {
+  createStop = { id, name, source, slId: slId || '' };
   document.getElementById('create-stop-input').value = '';
   closeCreateDD();
   document.getElementById('selected-stop-name').textContent = name;
   document.getElementById('selected-stop-box').classList.add('show');
-  // Auto-fill name if empty
   const nameInput = document.getElementById('board-name-input');
   if (!nameInput.value) nameInput.value = name;
 }
@@ -1694,6 +1716,7 @@ function saveBoard() {
     id:           Date.now().toString(),
     name,
     stopId:       createStop.id,
+    slId:         createStop.slId || '',
     stopName:     createStop.name,
     source:       createStop.source,
     color:        createColor,
