@@ -1647,6 +1647,8 @@ async function doCreateSearch(q) {
     if (r.ok) {
       const d = await r.json();
       const groups = d.stop_groups || [];
+      dbg('TL stop svar:', JSON.stringify(d).slice(0,300));
+      dbg('TL stop grupper:', groups.length, groups.slice(0,3).map(g=>g.id+' '+g.name).join(', '));
       if (groups.length) { renderCreateTLStops(groups); return; }
     }
   } catch(e) { dbg('Create TL exception:', e.message); }
@@ -1668,10 +1670,9 @@ function isSLStop(id) {
 
 function renderCreateTLStops(groups) {
   const dd = document.getElementById('create-dropdown');
-  const slGroups = groups.filter(g => isSLStop(g.id));
-  if (!slGroups.length) { showCreateDDMsg('Inga SL-hållplatser hittades.'); return; }
-  dd.innerHTML = slGroups.slice(0,8).map(g => {
-    // TL-grupper innehåller ofta stops med SL site-ID i stop_areas
+  dbg('TL stop IDs:', groups.slice(0,5).map(g=>g.id+' '+g.name).join(' | '));
+  if (!groups.length) { showCreateDDMsg('Inga hållplatser hittades.'); return; }
+  dd.innerHTML = groups.slice(0,8).map(g => {
     const slSiteId = (g.stop_areas||[]).map(a => a.id).find(id => String(id).length <= 6) || '';
     return `<div class="dd-item" onclick="pickStop('${g.id}','${esc(g.name)}','tl','${slSiteId}')">
       <span style="color:var(--sl-blue);display:flex"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg></span><span class="dd-name">${g.name}</span><span class="dd-id">${g.id}</span>
