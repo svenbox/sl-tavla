@@ -477,6 +477,7 @@ body {
 }
 .updated-label { font-size: 0.78rem; color: var(--text3); }
 .avgangstid-label { font-size: 0.78rem; color: var(--text); font-weight: 500; }
+.depclock-label   { font-size: 0.78rem; color: var(--text); font-weight: 500; min-width: clamp(60px, 8vw, 120px); }
 .refresh-link {
   background: none; border: none; cursor: pointer;
   color: var(--sl-blue); font-size: 0.78rem; font-weight: 600;
@@ -547,6 +548,15 @@ body {
 .dep-time-big.soon { color: var(--sl-red); }
 .dep-clock { font-family:'SL Gothic Text 2', sans-serif; font-size: clamp(0.65rem, 1vw, 0.9rem); font-weight: 400; color: var(--text3); letter-spacing: 0.03em; }
 .dep-delay-note { font-size: clamp(0.6rem, 0.9vw, 0.85rem); color: var(--sl-red); font-weight: 500; }
+.dep-depclock {
+  flex-shrink: 0;
+  min-width: clamp(60px, 8vw, 120px);
+  font-family:'SL Gothic Text 2', sans-serif;
+  font-size: clamp(1rem, 1.6vw, 1.4rem);
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: 0.02em;
+}
 
 /* ── CREATE VIEW ── */
 .create-container {
@@ -891,7 +901,8 @@ body {
           Uppdatera
         </button>
       </div>
-      <span class="avgangstid-label">Avgångstid</span>
+      <span class="depclock-label">Avgångstid</span>
+      <span class="avgangstid-label">Tid kvar</span>
     </div>
 
     <div class="loading-bar" id="detail-loading" style="display:none"><div class="loading-bar-inner"></div></div>
@@ -1444,20 +1455,21 @@ function renderDetailDeps() {
     const delayMin= (rt&&sch) ? Math.round((rt-sch)/60000) : 0;
     const delayed = delayMin > 1;
 
-    let timeHtml, clockHtml = '', timeClass = '';
+    let timeHtml, depClock = '', timeClass = '';
     if (d.canceled) {
       timeHtml = `<span style="color:var(--sl-red);font-size:0.78rem;font-weight:700">Inställd</span>`;
     } else if (diffMin===null) {
       timeHtml = `<span class="dep-time-big">–</span>`;
     } else if (diffMin <= 0) {
       timeHtml  = `<span class="dep-time-big now">Nu</span>`;
-      clockHtml = t ? `<span class="dep-clock">${t.toTimeString().slice(0,5)}</span>` : '';
+      depClock  = t ? t.toTimeString().slice(0,5).replace(':','.') : '';
     } else if (diffMin > 60) {
-      timeHtml = `<span class="dep-time-big">${t.toTimeString().slice(0,5)}</span>`;
+      timeHtml = `<span class="dep-time-big">${t.toTimeString().slice(0,5).replace(':','.')}</span>`;
+      depClock  = '';
     } else {
       timeClass = diffMin <= 2 ? 'soon' : '';
       timeHtml  = `<span class="dep-time-big ${timeClass}">${diffMin} min</span>`;
-      clockHtml = t ? `<span class="dep-clock">${t.toTimeString().slice(0,5)}</span>` : '';
+      depClock  = t ? t.toTimeString().slice(0,5).replace(':','.') : '';
     }
     if (delayed && !d.canceled) {
       timeHtml += `<div class="dep-delay-note">+${delayMin} min</div>`;
@@ -1468,7 +1480,8 @@ function renderDetailDeps() {
       <div class="dep-badge" style="${lineBadgeStyle(d.line,d.mode)}">${d.line}</div>
       <div class="dep-dest${d.canceled?' canceled':''}">${d.dest}</div>
       ${d.platform?`<div class="dep-platform">Läge ${d.platform}</div>`:''}
-      <div class="dep-time-col">${timeHtml}${clockHtml}</div>
+      <div class="dep-depclock">${depClock}</div>
+      <div class="dep-time-col">${timeHtml}</div>
     </div>`;
   }).join('');
 }
