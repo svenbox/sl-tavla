@@ -359,8 +359,6 @@ body {
 
 /* ── BOARD DETAIL VIEW ── */
 .board-detail {
-  max-width: 700px;
-  margin: 0 auto;
   padding: 0 0 40px;
 }
 
@@ -777,6 +775,13 @@ body {
 }
 .btn-danger:hover { background: #ffeaea; }
 
+@media all and (display-mode: standalone) {
+  .dep-dest     { font-size: 1.3rem; }
+  .dep-time-big { font-size: 1.4rem; }
+  .dep-badge    { font-size: 1.3rem; min-width: 60px; padding: 5px 14px; }
+  .dep-row      { min-height: 68px; }
+  .dep-clock    { font-size: 0.85rem; }
+}
 @media(max-width:500px) {
   .big-sign-stop { font-size: 1.25rem; }
   .dep-row { padding: 0 14px; gap: 8px; }
