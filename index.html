@@ -281,31 +281,62 @@ body {
 }
 .mini-dest { color: var(--text2); font-size: 0.78rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-/* Small display panel – real digital display look */
+/* ── CARD DEPARTURE PANEL – perrongstil ── */
 .sign-panel {
   background: #111;
-  padding: 6px 10px;
+  border-top: 2px solid #000;
+  overflow: hidden;
+}
+.sign-panel-row {
   display: flex;
   align-items: center;
-  justify-content: space-between;
   gap: 8px;
-  border-top: 2px solid #000;
-  border-bottom: 1px solid #333;
+  padding: 5px 10px;
+  border-bottom: 1px solid #2a2a2a;
+  min-height: 32px;
 }
-.panel-next {
-  color: #ccc;
+.sign-panel-row:last-child { border-bottom: none; }
+.panel-badge {
   font-family:'SL Gothic Text 2', sans-serif;
-  font-size: 0.75rem;
-  font-weight: 400;
-  letter-spacing: 0.03em;
-  opacity: 0.8;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: white;
+  border-radius: 3px;
+  padding: 2px 7px;
+  flex-shrink: 0;
+  min-width: 30px;
+  text-align: center;
+  line-height: 1.4;
 }
-.panel-time {
+.panel-dest {
+  flex: 1;
+  color: #e8e8e8;
+  font-family:'SL Gothic Text 2', sans-serif;
+  font-size: 0.82rem;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.panel-mins {
   color: white;
   font-family:'SL Gothic Text 2', sans-serif;
-  font-size: 1rem;
+  font-size: 0.88rem;
   font-weight: 700;
-  letter-spacing: 0.04em;
+  flex-shrink: 0;
+  min-width: 44px;
+  text-align: right;
+  letter-spacing: 0.02em;
+}
+.panel-mins.now  { color: #4ade80; }
+.panel-mins.soon { color: #f87171; }
+.panel-empty {
+  color: #555;
+  font-family:'SL Gothic Text 2', sans-serif;
+  font-size: 0.78rem;
+  padding: 10px;
+  text-align: center;
+  width: 100%;
 }
 .sign-card-footer {
   padding: 6px 14px;
@@ -1102,9 +1133,8 @@ function renderBoards() {
           <div class="sign-board-name">${b.stopName}</div>
         </div>
       </div>
-      <div class="sign-panel">
-        <span class="panel-next">Nästa avgång</span>
-        <span class="panel-time" id="card-time-${i}">…</span>
+      <div class="sign-panel" id="card-panel-${i}">
+        <div class="sign-panel-row"><span class="panel-empty">Laddar…</span></div>
       </div>
       <div class="sign-card-footer">
         <span class="card-footer-label">Skapad ${new Date(b.created).toLocaleDateString('sv-SE')}</span>
@@ -1125,8 +1155,8 @@ function renderBoards() {
 }
 
 async function fetchNextDeparture(board, i) {
-  const el = document.getElementById(`card-time-${i}`);
-  if (!el) return;
+  const panel = document.getElementById(`card-panel-${i}`);
+  if (!panel) return;
   try {
     let deps = [];
     try { deps = await fetchTLDeps(board.stopId); }
@@ -1143,21 +1173,34 @@ async function fetchNextDeparture(board, i) {
 
     const allowed = new Set(board.defaultModes || ['BUS','METRO','TRAM','TRAIN','FERRY']);
     const now = new Date();
-    const next = deps
+    const nexts = deps
       .filter(d => allowed.has(d.mode) && !d.canceled)
       .map(d => {
         const t = d.realtime ? new Date(d.realtime) : d.scheduled ? new Date(d.scheduled) : null;
-        return { t, diff: t ? Math.round((t - now) / 60000) : 999 };
+        return { ...d, t, diff: t ? Math.round((t - now) / 60000) : 999 };
       })
       .filter(d => d.diff >= 0)
-      .sort((a, b) => a.diff - b.diff)[0];
+      .sort((a, b) => a.diff - b.diff)
+      .slice(0, 3);
 
-    if (!next) { el.textContent = '–'; return; }
-    if (next.diff <= 0) el.innerHTML = '<span style="color:#1d7a3a;font-weight:700">Nu</span>';
-    else if (next.diff <= 2) el.innerHTML = `<span style="color:#d4171e;font-weight:700">${next.diff} min</span>`;
-    else el.textContent = `${next.diff} min`;
+    if (!nexts.length) {
+      panel.innerHTML = `<div class="sign-panel-row"><span class="panel-empty">Inga avgångar</span></div>`;
+      return;
+    }
+
+    panel.innerHTML = nexts.map(d => {
+      const minsClass = d.diff <= 0 ? 'now' : d.diff <= 2 ? 'soon' : '';
+      const minsText  = d.diff <= 0 ? 'Nu' : `${d.diff} min`;
+      const badge     = `<span class="panel-badge" style="${lineBadgeStyle(d.line, d.mode)}">${d.line}</span>`;
+      return `<div class="sign-panel-row">
+        ${badge}
+        <span class="panel-dest">${d.dest}</span>
+        <span class="panel-mins ${minsClass}">${minsText}</span>
+      </div>`;
+    }).join('');
+
   } catch(e) {
-    if (el) el.textContent = '–';
+    if (panel) panel.innerHTML = `<div class="sign-panel-row"><span class="panel-empty">–</span></div>`;
   }
 }
 
