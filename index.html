@@ -1646,9 +1646,7 @@ async function doCreateSearch(q) {
     dbg('Create TL stop:', r.status);
     if (r.ok) {
       const d = await r.json();
-      const groups = d.stop_groups || [];
-      dbg('TL stop svar:', JSON.stringify(d).slice(0,300));
-      dbg('TL stop grupper:', groups.length, groups.slice(0,3).map(g=>g.id+' '+g.name).join(', '));
+      const groups = (d.stop_groups || []).filter(g => isSLStop(g.id));
       if (groups.length) { renderCreateTLStops(groups); return; }
     }
   } catch(e) { dbg('Create TL exception:', e.message); }
@@ -1663,15 +1661,14 @@ async function doCreateSearch(q) {
 }
 
 function isSLStop(id) {
-  // SL:s hållplatser i Trafiklab har ID i spannet 7400100000–7400799999
-  const n = parseInt(id);
-  return n >= 7400100000 && n <= 7400799999;
+  // SL:s hållplatser: 9-siffriga ID som börjar med 7400
+  const s = String(id);
+  return s.length === 9 && s.startsWith('7400');
 }
 
 function renderCreateTLStops(groups) {
   const dd = document.getElementById('create-dropdown');
-  dbg('TL stop IDs:', groups.slice(0,5).map(g=>g.id+' '+g.name).join(' | '));
-  if (!groups.length) { showCreateDDMsg('Inga hållplatser hittades.'); return; }
+  if (!groups.length) { showCreateDDMsg('Inga SL-hållplatser hittades.'); return; }
   dd.innerHTML = groups.slice(0,8).map(g => {
     const slSiteId = (g.stop_areas||[]).map(a => a.id).find(id => String(id).length <= 6) || '';
     return `<div class="dd-item" onclick="pickStop('${g.id}','${esc(g.name)}','tl','${slSiteId}')">
