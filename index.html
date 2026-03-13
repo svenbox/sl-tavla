@@ -1375,6 +1375,7 @@ function detailToggleAll() {
 
 function updateDetailToggleBtn() {
   const btn = document.getElementById('detail-toggle-all');
+  if (!btn) return;
   btn.textContent = activeModes.size === detailModes.size ? 'Avmarkera alla' : 'Markera alla';
 }
 
