@@ -52,8 +52,28 @@
   --text2:       #444;
   --text3:       #888;
   --bg:          #efefef;
+  --card-bg:     #ffffff;
   --panel-bg:    #1a1a1a;
   --panel-text:  #ffffff;
+  --dep-odd:     #f7f7f7;
+  --dep-even:    #ffffff;
+  --filter-bg:   #ffffff;
+  --header-bg:   #ffffff;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --border:    #333;
+    --text:      #f0f0f0;
+    --text2:     #bbb;
+    --text3:     #777;
+    --bg:        #111;
+    --card-bg:   #1e1e1e;
+    --dep-odd:   #1a1a1a;
+    --dep-even:  #1e1e1e;
+    --filter-bg: #1e1e1e;
+    --header-bg: #1e1e1e;
+    --sl-blue-bg:#0a2a40;
+  }
 }
 * { margin:0; padding:0; box-sizing:border-box; }
 body { font-family:'SL Gothic Text 2', system-ui, sans-serif; background:var(--bg); color:var(--text); min-height:100vh; }
@@ -177,7 +197,7 @@ body {
 
 /* ── SL STOP SIGN CARD ── */
 .sign-card {
-  background: white;
+  background: var(--card-bg);
   border-radius: 4px;
   overflow: hidden;
   box-shadow: 0 3px 12px rgba(0,0,0,0.18), inset 0 0 0 3px rgba(255,255,255,0.9);
@@ -185,6 +205,9 @@ body {
   cursor: pointer;
   transition: box-shadow 0.15s, transform 0.15s;
   position: relative;
+}
+@media (prefers-color-scheme: dark) {
+  .sign-card { box-shadow: 0 3px 12px rgba(0,0,0,0.5); border-color: #444; }
 }
 .sign-card:hover { box-shadow: 0 8px 24px rgba(0,0,0,0.22); transform: translateY(-2px); }
 
@@ -298,9 +321,25 @@ body {
   transition: all 0.12s;
 }
 .card-delete:hover { color: var(--sl-red); background: #ffeaea; }
+.card-edit {
+  background: none; border: none; cursor: pointer;
+  color: var(--sl-blue); font-size: 0.72rem; padding: 2px 6px;
+  border-radius: 4px; font-family:'SL Gothic Text 2', sans-serif;
+  transition: all 0.12s; font-weight: 600;
+}
+.card-edit:hover { background: var(--sl-blue-bg); }
+@media (prefers-color-scheme: dark) {
+  .card-delete:hover { background: #3a1a1a; }
+  .card-edit:hover { background: #0a2a40; }
+  .sign-panel { background: #000; border-color: #000; }
+  .modal-sheet { background: #1e1e1e; }
+  .debug-wrap summary { background: #1a1a1a; }
+  .color-opt.sel { border-color: #fff; }
+  .mode-pill.on { background: var(--sl-blue); border-color: var(--sl-blue); color: white; }
+}
 
 .add-card {
-  background: white;
+  background: var(--card-bg);
   border: 2px dashed var(--border);
   border-radius: 6px;
   display: flex;
@@ -394,7 +433,7 @@ body {
 
 /* Mode filter row */
 .mode-filter-bar {
-  background: white;
+  background: var(--filter-bg);
   border-bottom: 1px solid var(--border);
   padding: 10px 20px;
   display: flex;
@@ -412,7 +451,7 @@ body {
   font-weight: 600;
   cursor: pointer;
   transition: all 0.13s;
-  background: white;
+  background: var(--filter-bg);
   color: var(--text2);
   user-select: none;
 }
@@ -431,7 +470,7 @@ body {
 
 /* List header */
 .dep-list-header {
-  background: white;
+  background: var(--header-bg);
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -452,7 +491,7 @@ body {
 @keyframes spin { to { transform: rotate(360deg); } }
 
 /* Departure rows */
-.dep-list { background: white; }
+.dep-list { background: var(--dep-even); }
 
 .dep-row {
   display: flex;
@@ -464,8 +503,8 @@ body {
   animation: fadeIn 0.2s ease both;
 }
 @keyframes fadeIn { from{opacity:0;transform:translateY(3px);} to{opacity:1;transform:translateY(0);} }
-.dep-row:nth-child(odd)  { background: #f7f7f7; }
-.dep-row:nth-child(even) { background: white; }
+.dep-row:nth-child(odd)  { background: var(--dep-odd); }
+.dep-row:nth-child(even) { background: var(--dep-even); }
 
 .dep-mode-circle {
   width: 26px; height: 26px;
@@ -540,7 +579,7 @@ body {
   color: var(--text);
   outline: none;
   transition: border-color 0.15s;
-  background: white;
+  background: var(--card-bg);
 }
 .form-input:focus { border-color: var(--sl-blue); }
 .form-input::placeholder { color: var(--text3); }
@@ -555,7 +594,7 @@ body {
 .dropdown {
   position: absolute;
   top: calc(100% + 3px); left: 0; right: 0;
-  background: white;
+  background: var(--card-bg);
   border: 1px solid var(--border);
   border-radius: 8px;
   z-index: 100;
@@ -611,7 +650,7 @@ body {
   border-radius: 100px;
   font-size: 0.82rem; font-weight: 600;
   cursor: pointer; transition: all 0.13s;
-  background: white; color: var(--text2); user-select: none;
+  background: var(--card-bg); color: var(--text2); user-select: none;
 }
 .mode-pill-create.on { background: var(--sl-blue); border-color: var(--sl-blue); color: white; }
 
@@ -676,6 +715,68 @@ body {
 .credits a { color: var(--text3); }
 #key-status-line { cursor: pointer; text-decoration: underline; }
 
+/* ── PULL TO REFRESH ── */
+.ptr-indicator {
+  display: flex; align-items: center; justify-content: center;
+  gap: 8px; height: 0; overflow: hidden;
+  background: var(--bg);
+  color: var(--text3); font-size: 0.8rem;
+  transition: height 0.2s;
+}
+.ptr-indicator.visible { height: 48px; }
+.ptr-spinner { animation: spin 0.8s linear infinite; }
+
+/* ── EDIT MODAL ── */
+.modal-overlay {
+  display: none;
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.5);
+  z-index: 100;
+  align-items: flex-end;
+  justify-content: center;
+}
+.modal-overlay.open { display: flex; }
+.modal-sheet {
+  background: var(--card-bg);
+  border-radius: 16px 16px 0 0;
+  padding: 20px 20px 40px;
+  width: 100%; max-width: 600px;
+  max-height: 90vh; overflow-y: auto;
+  animation: slideUp 0.25s ease;
+}
+@keyframes slideUp { from{transform:translateY(100%);} to{transform:translateY(0);} }
+.modal-handle {
+  width: 40px; height: 4px;
+  background: var(--border);
+  border-radius: 2px;
+  margin: 0 auto 16px;
+}
+.modal-title {
+  font-size: 1.2rem; font-weight: 700;
+  margin-bottom: 20px; color: var(--text);
+}
+.btn-secondary {
+  background: var(--card-bg); color: var(--text);
+  border: 2px solid var(--border); border-radius: 8px;
+  padding: 11px 24px;
+  font-family:'SL Gothic Text 2', sans-serif;
+  font-size: 0.95rem; font-weight: 600;
+  cursor: pointer; width: 100%;
+  transition: all 0.15s;
+  margin-bottom: 8px;
+}
+.btn-secondary:hover { border-color: var(--sl-blue); color: var(--sl-blue); }
+.btn-danger {
+  background: none; color: var(--sl-red);
+  border: 2px solid var(--sl-red); border-radius: 8px;
+  padding: 11px 24px;
+  font-family:'SL Gothic Text 2', sans-serif;
+  font-size: 0.95rem; font-weight: 600;
+  cursor: pointer; width: 100%;
+  transition: all 0.15s; margin-top: 8px;
+}
+.btn-danger:hover { background: #ffeaea; }
+
 @media(max-width:500px) {
   .big-sign-stop { font-size: 1.25rem; }
   .dep-row { padding: 0 14px; gap: 8px; }
@@ -684,6 +785,52 @@ body {
 </style>
 </head>
 <body>
+
+<!-- ════════════════════════════════════════ -->
+<!-- EDIT MODAL                               -->
+<!-- ════════════════════════════════════════ -->
+<div class="modal-overlay" id="edit-modal" onclick="closeEditModal(event)">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Redigera tavla</div>
+
+    <div class="form-section">
+      <label class="form-label">Namn på tavlan</label>
+      <input class="form-input" type="text" id="edit-name-input" maxlength="40">
+    </div>
+
+    <div class="form-section">
+      <label class="form-label">Skyltfärg</label>
+      <div class="color-options" id="edit-color-options">
+        <div class="color-opt" style="background:#005b99" data-color="blue" onclick="editPickColor('blue',this)" title="Blå"></div>
+        <div class="color-opt" style="background:#d4171e" data-color="red" onclick="editPickColor('red',this)" title="Röd"></div>
+        <div class="color-opt" style="background:#1d7a3a" data-color="green" onclick="editPickColor('green',this)" title="Grön"></div>
+        <div class="color-opt" style="background:#e8830a" data-color="orange" onclick="editPickColor('orange',this)" title="Orange"></div>
+        <div class="color-opt" style="background:#444" data-color="dark" onclick="editPickColor('dark',this)" title="Svart"></div>
+      </div>
+    </div>
+
+    <div class="form-section">
+      <label class="form-label">Visa färdsätt</label>
+      <div class="mode-pills-create" id="edit-mode-pills">
+        <div class="mode-pill-create" data-mode="BUS">Buss</div>
+        <div class="mode-pill-create" data-mode="METRO">Tunnelbana</div>
+        <div class="mode-pill-create" data-mode="TRAM">Spårvagn</div>
+        <div class="mode-pill-create" data-mode="TRAIN">Tåg</div>
+        <div class="mode-pill-create" data-mode="FERRY">Båt</div>
+      </div>
+    </div>
+
+    <button class="btn-primary" onclick="saveEdit()">Spara ändringar</button>
+    <button class="btn-danger" onclick="deleteBoardFromEdit()">Ta bort tavla</button>
+  </div>
+</div>
+
+<!-- Pull-to-refresh indicator -->
+<div class="ptr-indicator" id="ptr-indicator">
+  <svg class="ptr-spinner" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+  Uppdaterar…
+</div>
 
 <!-- ════════════════════════════════════════ -->
 <!-- VIEW: BOARDS LIST                        -->
@@ -719,7 +866,10 @@ body {
     </div>
     <div class="big-sign-right">
       <div class="big-clock" id="detail-clock">–</div>
-      <button class="back-btn" onclick="showView('boards')">← Tillbaka</button>
+      <div style="display:flex;gap:6px">
+        <button class="back-btn" onclick="openEditModalFromDetail()">✎ Redigera</button>
+        <button class="back-btn" onclick="showView('boards')">← Tillbaka</button>
+      </div>
     </div>
   </div>
 
@@ -943,7 +1093,10 @@ function renderBoards() {
       </div>
       <div class="sign-card-footer">
         <span class="card-footer-label">Skapad ${new Date(b.created).toLocaleDateString('sv-SE')}</span>
-        <button class="card-delete" onclick="event.stopPropagation();deleteBoard(${i})">Ta bort</button>
+        <div style="display:flex;gap:8px">
+          <button class="card-edit" onclick="event.stopPropagation();openEditModal(${i})">Redigera</button>
+          <button class="card-delete" onclick="event.stopPropagation();deleteBoard(${i})">Ta bort</button>
+        </div>
       </div>
     </div>`;
   }).join('') + `
@@ -997,6 +1150,83 @@ function deleteBoard(i) {
   if (!confirm(`Ta bort "${boards[i].name}"?`)) return;
   boards.splice(i, 1);
   localStorage.setItem('sl_boards', JSON.stringify(boards));
+  renderBoards();
+}
+
+function openEditModalFromDetail() {
+  const i = boards.indexOf(currentBoard);
+  if (i >= 0) openEditModal(i);
+}
+
+// ═══════════════════════════════════════════
+// EDIT MODAL
+let editIndex = -1;
+let editColor = 'blue';
+let editModes = new Set();
+
+function openEditModal(i) {
+  editIndex = i;
+  const b = boards[i];
+  editColor = b.color || 'blue';
+  editModes = new Set(b.defaultModes || ['BUS','METRO','TRAM','TRAIN','FERRY']);
+
+  document.getElementById('edit-name-input').value = b.name;
+
+  // Color
+  document.querySelectorAll('#edit-color-options .color-opt').forEach(el => {
+    el.classList.toggle('sel', el.dataset.color === editColor);
+  });
+
+  // Mode pills
+  document.querySelectorAll('#edit-mode-pills .mode-pill-create').forEach(el => {
+    el.classList.toggle('on', editModes.has(el.dataset.mode));
+    el.onclick = () => {
+      const m = el.dataset.mode;
+      if (editModes.has(m)) { if (editModes.size === 1) return; editModes.delete(m); el.classList.remove('on'); }
+      else { editModes.add(m); el.classList.add('on'); }
+    };
+  });
+
+  document.getElementById('edit-modal').classList.add('open');
+}
+
+function closeEditModal(e) {
+  if (!e || e.target === document.getElementById('edit-modal')) {
+    document.getElementById('edit-modal').classList.remove('open');
+  }
+}
+
+function editPickColor(color, el) {
+  editColor = color;
+  document.querySelectorAll('#edit-color-options .color-opt').forEach(e => e.classList.remove('sel'));
+  el.classList.add('sel');
+}
+
+function saveEdit() {
+  const name = document.getElementById('edit-name-input').value.trim();
+  if (!name) { alert('Ge tavlan ett namn.'); return; }
+  boards[editIndex].name = name;
+  boards[editIndex].color = editColor;
+  boards[editIndex].defaultModes = [...editModes];
+  localStorage.setItem('sl_boards', JSON.stringify(boards));
+  document.getElementById('edit-modal').classList.remove('open');
+
+  // If editing current board in detail view, update header live
+  if (currentBoard === boards[editIndex] || boards[editIndex] === currentBoard) {
+    currentBoard = boards[editIndex];
+    const color = STRIPE_COLORS[currentBoard.color] || STRIPE_COLORS.blue;
+    document.getElementById('detail-sign').style.background = color;
+    document.getElementById('detail-stop').textContent = currentBoard.name;
+    document.getElementById('detail-board').textContent = currentBoard.stopName;
+  }
+  renderBoards();
+}
+
+function deleteBoardFromEdit() {
+  if (!confirm(`Ta bort "${boards[editIndex].name}"?`)) return;
+  boards.splice(editIndex, 1);
+  localStorage.setItem('sl_boards', JSON.stringify(boards));
+  document.getElementById('edit-modal').classList.remove('open');
   renderBoards();
 }
 
@@ -1374,6 +1604,44 @@ function esc(s) { return (s||'').replace(/'/g,"\\'"); }
 document.addEventListener('click', e => {
   if (!e.target.closest('#create-search-wrap')) closeCreateDD();
 });
+
+// ═══════════════════════════════════════════
+// PULL TO REFRESH
+(function() {
+  let startY = 0, pulling = false, triggered = false;
+  const MIN_PULL = 70;
+
+  document.addEventListener('touchstart', e => {
+    if (document.getElementById('view-detail').classList.contains('active')) {
+      startY = e.touches[0].clientY;
+      pulling = window.scrollY === 0;
+      triggered = false;
+    }
+  }, { passive: true });
+
+  document.addEventListener('touchmove', e => {
+    if (!pulling) return;
+    const dy = e.touches[0].clientY - startY;
+    if (dy > 10) {
+      const ind = document.getElementById('ptr-indicator');
+      if (dy > MIN_PULL && !triggered) {
+        ind.classList.add('visible');
+      }
+    }
+  }, { passive: true });
+
+  document.addEventListener('touchend', e => {
+    if (!pulling) return;
+    const dy = e.changedTouches[0].clientY - startY;
+    const ind = document.getElementById('ptr-indicator');
+    ind.classList.remove('visible');
+    if (dy > MIN_PULL && !triggered) {
+      triggered = true;
+      loadDetailDepartures();
+    }
+    pulling = false;
+  });
+})();
 
 init();
 </script>
