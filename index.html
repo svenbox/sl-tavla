@@ -989,7 +989,7 @@ let createModes   = new Set(['BUS','METRO','TRAM','TRAIN','FERRY']);
 // ═══════════════════════════════════════════
 // URLS
 // API-nyckel hanteras av proxy-servern – ingenting känsligt i frontend
-function tlStopUrl(q)  { return P + encodeURIComponent(`https://realtime-api.trafiklab.se/v1/stops/name/${encodeURIComponent(q)}`); }
+function tlStopUrl(q)  { return P + encodeURIComponent(`https://realtime-api.trafiklab.se/v1/stops/name/${encodeURIComponent(q)}?transport_authority_id=275`); }
 function tlDepUrl(id)  { return P + encodeURIComponent(`https://realtime-api.trafiklab.se/v1/departures/${id}`); }
 function slStopUrl(q)  { return P + encodeURIComponent(`https://transport.integration.sl.se/v1/sites?expand=false&q=${encodeURIComponent(q)}`); }
 function slDepUrl(id)  { return P + encodeURIComponent(`https://transport.integration.sl.se/v1/sites/${id}/departures`); }
@@ -1303,6 +1303,8 @@ async function fetchTLDeps(id) {
   if (!r.ok) { const t=await r.text(); dbg('TL fel:', t.slice(0,150)); throw new Error('TL '+r.status); }
   const d = await r.json();
   dbg('TL avgångar:', (d.departures||[]).length);
+  const modes = [...new Set((d.departures||[]).map(x => x.route?.transport_mode))];
+  dbg('TL modes:', modes.join(', '));
   return (d.departures||[]).map(x => ({
     line:      x.route?.designation || x.route?.name || '?',
     dest:      x.route?.direction || x.destination || '–',
@@ -1320,6 +1322,8 @@ async function fetchSLDeps(id) {
   if (!r.ok) { const t=await r.text(); dbg('SL fel:', t.slice(0,150)); throw new Error('SL '+r.status); }
   const d = await r.json();
   dbg('SL avgångar:', (d.departures||[]).length);
+  const slModes = [...new Set((d.departures||[]).map(x => x.line?.transport_mode))];
+  dbg('SL modes:', slModes.join(', '));
   return (d.departures||[]).map(x => ({
     line:      x.line?.designation || x.line?.name || '?',
     dest:      x.destination || x.direction || x.line?.direction || '–',
