@@ -866,10 +866,7 @@ body {
     </div>
     <div class="big-sign-right">
       <div class="big-clock" id="detail-clock">–</div>
-      <div style="display:flex;gap:6px">
-        <button class="back-btn" onclick="openEditModalFromDetail()">✎ Redigera</button>
-        <button class="back-btn" onclick="showView('boards')">← Tillbaka</button>
-      </div>
+      <button class="back-btn" onclick="showView('boards')">← Tillbaka</button>
     </div>
   </div>
 
@@ -878,7 +875,6 @@ body {
     <div class="mode-filter-bar" id="detail-filter-bar">
       <span class="filter-label-sm">Färdsätt:</span>
       <div id="detail-mode-pills" style="display:flex;gap:6px;flex-wrap:wrap;"></div>
-      <button class="toggle-all-link" id="detail-toggle-all" onclick="detailToggleAll()"></button>
     </div>
 
     <!-- List header -->
