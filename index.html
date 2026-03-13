@@ -470,14 +470,15 @@ body {
 .dep-list-header {
   background: var(--header-bg);
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  padding: 8px 20px;
+  gap: clamp(8px, 1.5vw, 20px);
+  padding: 8px clamp(14px, 2.5vw, 40px);
   border-bottom: 1px solid var(--border);
 }
-.updated-label { font-size: 0.78rem; color: var(--text3); }
-.avgangstid-label { font-size: 0.78rem; color: var(--text); font-weight: 500; }
-.depclock-label   { font-size: 0.78rem; color: var(--text); font-weight: 500; min-width: clamp(60px, 8vw, 120px); }
+.dep-list-header-left { display:flex; align-items:center; gap:10px; }
+.updated-label    { font-size: 0.78rem; color: var(--text3); }
+.depclock-label   { font-size: 0.78rem; color: var(--text); font-weight: 600; min-width: clamp(60px, 8vw, 120px); }
+.avgangstid-label { font-size: 0.78rem; color: var(--text); font-weight: 600; text-align:right; min-width: clamp(72px, 8vw, 120px); }
 .refresh-link {
   background: none; border: none; cursor: pointer;
   color: var(--sl-blue); font-size: 0.78rem; font-weight: 600;
@@ -894,13 +895,14 @@ body {
 
     <!-- List header -->
     <div class="dep-list-header" id="detail-list-header" style="display:none">
-      <div style="display:flex;align-items:center;gap:10px">
+      <div class="dep-list-header-left">
         <span class="updated-label" id="detail-updated">–</span>
         <button class="refresh-link" id="detail-refresh-btn" onclick="loadDetailDepartures()">
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
           Uppdatera
         </button>
       </div>
+      <div style="flex:1"></div>
       <span class="depclock-label">Avgångstid</span>
       <span class="avgangstid-label">Tid kvar</span>
     </div>
