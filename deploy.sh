@@ -10,5 +10,5 @@ git pull
 echo "🔨 Bygger och startar om containers..."
 docker compose build --no-cache && docker compose up -d
 
-echo "✅ Klart! Kör på http://localhost:8087"
+echo "✅ Klart!"
 docker compose ps
